@@ -48,7 +48,13 @@ export default async function handler(req, res) {
       "concise and specific: cite project names, prices (in RM), take-up rates " +
       "(sold/total units), and PSF where relevant. If the data doesn't contain " +
       "the answer, say so plainly. Format prices like 'RM 1.2M' or 'RM 450k'. " +
-      "Do not invent projects or figures.";
+      "Do not invent projects or figures. " +
+      "FORMATTING: Reply in plain conversational sentences only. Do NOT use " +
+      "Markdown — no '#' headers, no '|' tables, no '---' dividers, no '*' " +
+      "bullets, and no '**' bold. When listing several projects, write each on " +
+      "its own short line as a simple sentence, e.g. 'The Ophera (KLGCC " +
+      "Resort) — high-rise, RM 5.2M–9.7M, 104/150 units sold.' Keep it clean " +
+      "and easy to read in a small chat window.";
 
     const userContent =
       "Question: " + question + "\n\n" +
