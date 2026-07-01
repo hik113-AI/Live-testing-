@@ -4,7 +4,7 @@
 // questions correctly at the state level. Suburb-level questions (e.g.
 // "Bangsar South") are handled separately via name matching in ask.js.
 
-export const STATES = [
+const STATES = [
   "Perlis", "Kedah", "Penang", "Perak", "Selangor", "Kuala Lumpur",
   "Putrajaya", "Negeri Sembilan", "Melaka", "Johor", "Pahang",
   "Terengganu", "Kelantan"
@@ -26,13 +26,15 @@ const CENTROIDS = {
   "Kelantan":        [5.80, 102.15]
 };
 
-export function nearestState(lat, lon) {
+function nearestState(lat, lon) {
   let best = null, bestDist = Infinity;
   for (const state of STATES) {
-    const [cLat, cLon] = CENTROIDS[state];
-    const dLat = lat - cLat, dLon = lon - cLon;
+    const c = CENTROIDS[state];
+    const dLat = lat - c[0], dLon = lon - c[1];
     const dist = dLat * dLat + dLon * dLon;
     if (dist < bestDist) { bestDist = dist; best = state; }
   }
   return best;
 }
+
+module.exports = { STATES, nearestState };
