@@ -1,28 +1,19 @@
-// api/ask.js — Vercel serverless function
+// api/ask.js — Vercel serverless function (CommonJS — no ESM import/export,
+// so this works regardless of package.json "type" settings)
 //
-// ARCHITECTURE (rewritten from scratch):
-// Previously, the front-end tried to guess which projects were "relevant"
-// using regex/keyword matching, then only sent that guessed shortlist to
-// Claude. Any bug in the guessing logic (typos, filler words, meta-questions
-// like "how many total") meant Claude received an empty or wrong context and
-// looked "dumb". That entire guessing layer is gone.
-//
-// Now: Claude itself decides what to search for, via a tool call
-// (query_projects) with structured arguments (price range, tenure, type,
-// state, keywords, sort). The server then runs an EXACT, deterministic
-// JavaScript filter against the FULL dataset (all ~2,800 projects, loaded
-// from data.json, not a guessed subset). Claude never sees raw guesswork —
-// it sees real counts and real sample rows every time, and writes the final
-// answer from that. This is a standard two-step "tool use" / function-
-// calling pattern and is far more robust than string-matching heuristics.
+// ARCHITECTURE:
+// Claude gets a real tool, query_projects, with structured arguments
+// (price range, tenure, type, state, keywords, sort). The server runs an
+// EXACT, deterministic filter against the FULL dataset (all ~2,800
+// projects, loaded from data.json) and hands Claude back real counts and
+// real sample rows. Claude never guesses — it always queries first, then
+// writes the final answer from what the tool actually returned.
 
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import path from "path";
-import { STATES, nearestState } from "./geo.js";
+const fs = require("fs");
+const path = require("path");
+const { STATES, nearestState } = require("./geo.js");
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA = JSON.parse(readFileSync(path.join(__dirname, "data.json"), "utf-8"));
+const DATA = JSON.parse(fs.readFileSync(path.join(__dirname, "data.json"), "utf-8"));
 
 // DATA row shape: [name, lat, lon, tenure, isLanded, developer, priceMin,
 //                  priceMax, totalUnits, soldUnits, psfMin, psfMax, firstSale]
@@ -170,8 +161,6 @@ function queryProjects(args) {
   return { totalInDataset: DATA.length, matchedCount, sample };
 }
 
-export { queryProjects };
-
 async function callClaude(apiKey, messages, toolChoice) {
   const body = {
     model: "claude-sonnet-4-6",
@@ -202,7 +191,7 @@ function extractText(data) {
     .trim();
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ reply: "Method not allowed." });
   }
@@ -218,8 +207,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ reply: "No question provided." });
     }
 
-    // Keep prior turns as plain text context (last 6 messages max), so
-    // follow-up questions like "what about leasehold ones?" still work.
     const priorTurns = Array.isArray(history) ? history.slice(-6) : [];
     const messages = [
       ...priorTurns
@@ -267,8 +254,6 @@ export default async function handler(req, res) {
       }
       messages.push({ role: "user", content: toolResults });
 
-      // Subsequent calls: let Claude respond normally (auto), it already
-      // has the data it needs.
       apiResp = await callClaude(apiKey, messages, undefined);
       if (!apiResp.ok) {
         const errText = await apiResp.text();
@@ -284,4 +269,6 @@ export default async function handler(req, res) {
     console.error("Handler error:", err);
     return res.status(500).json({ reply: "Something went wrong on the server." });
   }
-}
+};
+
+module.exports.queryProjects = queryProjects;
