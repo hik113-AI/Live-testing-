@@ -512,7 +512,7 @@
     <input id="botInput" type="text" placeholder="e.g. freehold landed under 500k" aria-label="Ask a question">
     <button id="botSend">Ask</button>
   </div>
-  <div class="bot-note">Prototype: searches the live dataset on your device. Connect Claude API for free-form answers.</div>
+  <div class="bot-note">Powered by Claude, grounded in the full live dataset — answers may still be imperfect.</div>
   </div>
 </div>
 
@@ -1396,6 +1396,12 @@ document.getElementById('metricChips').addEventListener('click', e=>{
 });
 
 // ==================== AI PROJECT ASSISTANT (minimized by default) ====================
+// Client-side responsibility is now deliberately minimal: send the raw
+// question to the server, show a typing indicator, render the reply and
+// any returned project cards. All query understanding (extracting price/
+// tenure/type/location filters from natural language) happens server-side
+// via Claude tool-calling against the FULL dataset — see api/ask.js. This
+// replaces the old regex-based guesser that kept breaking on new phrasings.
 const botWin = document.getElementById('botWin');
 const botHead = document.getElementById('botHead');
 const botLog = document.getElementById('botLog');
@@ -1403,8 +1409,13 @@ const botInput = document.getElementById('botInput');
 
 const SUGGESTIONS = [
   'Cheapest freehold landed', 'High-rise under 500k', 'Biggest projects by units',
-  'Best take-up rate', 'Leasehold in Johor', 'Projects above RM1M'
+  'Best take-up rate', 'Leasehold in Johor', 'How many projects do you have?'
 ];
+
+// Short rolling history of {role, content} sent to the server so follow-up
+// questions ("what about leasehold ones?") keep context. Capped client-side
+// too, so it never grows unbounded in a long session.
+const chatHistory = [];
 
 function botOpen(){
   botWin.classList.add('open');
@@ -1442,109 +1453,39 @@ function botSay(who, html){
   return el;
 }
 
-// ---- natural-language query parser (runs locally, no API key needed) ----
-function parseQuery(qRaw){
-  const q = qRaw.toLowerCase();
-  const f = {price:null, tenure:null, type:null, sort:null, text:null};
-  const num = s => {
-    let m = s.match(/(\d+(?:\.\d+)?)\s*(k|m|mil|million)?/);
-    if (!m) return null;
-    let v = parseFloat(m[1]);
-    if (m[2]==='k') v*=1000; else if (m[2]) v*=1000000;
-    else if (v < 100) v*=1000000;
-    else if (v < 10000) v*=1000;
-    return v;
-  };
-  let m;
-  if (m = q.match(/(?:under|below|less than|cheaper than|<)\s*(rm)?\s*([\d.]+\s*[km]?)/)) f.price={max:num(m[2])};
-  else if (m = q.match(/(?:above|over|more than|>)\s*(rm)?\s*([\d.]+\s*[km]?)/)) f.price={min:num(m[2])};
-  else if (m = q.match(/between\s*(rm)?\s*([\d.]+\s*[km]?)\s*(?:and|-|to)\s*(rm)?\s*([\d.]+\s*[km]?)/)) f.price={min:num(m[2]),max:num(m[4])};
-  if (/freehold|\bfh\b/.test(q)) f.tenure='fh';
-  else if (/leasehold|\blh\b/.test(q)) f.tenure='lh';
-  if (/landed|terrace|bungalow|semi-?d/.test(q)) f.type='landed';
-  else if (/high.?rise|condo|apartment|serviced|suite/.test(q)) f.type='highrise';
-  if (/take.?up|fastest selling|best selling|sold out|absorption/.test(q)) f.sort='takeup';
-  if (/cheapest|lowest price|most affordable/.test(q)) f.sort='cheapest';
-  else if (/most expensive|priciest|dearest|highest price/.test(q)) f.sort='dearest';
-  else if (/biggest|largest|most units/.test(q)) f.sort='units';
-  else if (/newest|latest|most recent/.test(q)) f.sort='newest';
-  let leftover = q.replace(/freehold|leasehold|landed|high.?rise|condo|apartment|serviced|suite|terrace|bungalow|semi-?d|under|below|above|over|between|less than|more than|cheaper than|cheapest|lowest|most affordable|expensive|priciest|dearest|highest|biggest|largest|most units|newest|latest|recent|take.?up|fastest|best selling|sold out|absorption|projects?|launches?|\bin\b|\bthe\b|\brm\b|price|units?|show|me|find|with|\band\b|\bto\b|\d|\b[km]\b|<|>|-/gi,' ')
-                .replace(/\s+/g,' ').trim();
-  if (leftover.length >= 3) f.text = leftover;
-  return f;
-}
-
-function runQuery(f){
-  let res = DATA.filter(d=>{
-    if (f.price){
-      if (f.price.max && d[6] > f.price.max) return false;
-      if (f.price.min && d[6] < f.price.min) return false;
-    }
-    if (f.tenure && d[3] !== f.tenure) return false;
-    if (f.type==='landed' && d[4]!==1) return false;
-    if (f.type==='highrise' && d[4]!==0) return false;
-    if (f.text){
-      const hay = (d[0]+' '+d[5]).toLowerCase();
-      if (!hay.includes(f.text)) return false;
-    }
-    return true;
-  });
-  const takeup = d => d[8] ? d[9]/d[8] : 0;
-  if (f.sort==='cheapest') res.sort((a,b)=>a[6]-b[6]);
-  else if (f.sort==='dearest') res.sort((a,b)=>b[6]-a[6]);
-  else if (f.sort==='units') res.sort((a,b)=>b[8]-a[8]);
-  else if (f.sort==='takeup') res.sort((a,b)=>takeup(b)-takeup(a));
-  else if (f.sort==='newest') res.sort((a,b)=>(''+(b[12]||'')).slice(-4).localeCompare((''+(a[12]||'')).slice(-4)));
-  return res;
-}
-
-function botCardHTML(d){
-  const tu = d[8] ? Math.round(d[9]/d[8]*100) : null;
-  const ten = d[3]==='fh'?'Freehold':d[3]==='lh'?'Leasehold':'';
-  return `<div class="bot-card" data-lat="${d[1]}" data-lon="${d[2]}">
-    <div class="bc-name">${esc(d[0])}</div>
-    <div class="bc-meta">${d[4]?'Landed':'High-rise'}${ten?' · '+ten:''} · ${esc(d[5])}</div>
-    <div class="bc-price">${fmtRM(d[6])}${d[7]>d[6]?' – '+fmtRM(d[7]):''}${tu!==null?` · ${tu}% sold`:''}</div>
+function botCardHTML(p){
+  const tu = p.totalUnits ? Math.round(p.soldUnits / p.totalUnits * 100) : null;
+  return `<div class="bot-card" data-lat="${p.lat}" data-lon="${p.lon}">
+    <div class="bc-name">${esc(p.name)}</div>
+    <div class="bc-meta">${esc(p.type)}${p.tenure && p.tenure!=='Unknown' ? ' · '+esc(p.tenure) : ''} · ${esc(p.developer)}</div>
+    <div class="bc-price">${fmtRM(p.priceMin)}${p.priceMax>p.priceMin?' – '+fmtRM(p.priceMax):''}${tu!==null?` · ${tu}% sold`:''}</div>
   </div>`;
 }
 
-function localAnswer(qRaw, f, res){
-  const bits = [];
-  if (f.type) bits.push(f.type==='landed'?'landed':'high-rise');
-  if (f.tenure) bits.push(f.tenure==='fh'?'freehold':'leasehold');
-  if (f.price?.max) bits.push('under '+fmtRM(f.price.max));
-  if (f.price?.min) bits.push('above '+fmtRM(f.price.min));
-  if (f.text) bits.push('matching “'+esc(f.text)+'”');
-  const desc = bits.length ? bits.join(', ') : 'all projects';
-  if (res.length === 0){
-    botSay('bot', `I couldn't find any projects for <b>${desc}</b>. Try widening the price range or removing a filter.`);
-    return;
-  }
-  const sortLabel = {cheapest:'cheapest first',dearest:'most expensive first',units:'biggest first',takeup:'best take-up first',newest:'newest first'}[f.sort] || '';
-  const top = res.slice(0, 5);
-  const intro = `Found <b>${res.length.toLocaleString()}</b> project${res.length!==1?'s':''} for <b>${desc}</b>${sortLabel?` (${sortLabel})`:''}.${res.length>5?' Top 5:':''}`;
-  botSay('bot', `<div class="ms-intro">${intro}</div>${top.map(botCardHTML).join('')}`);
-}
-
 async function answer(qRaw){
-  const f = parseQuery(qRaw);
-  const res = runQuery(f);
-
   const thinking = botSay('bot', `<span class="bot-typing"><span></span><span></span><span></span></span>`);
 
   try {
     const r = await fetch('/api/ask', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ question: qRaw, projects: res.slice(0, 40) })
+      body: JSON.stringify({ question: qRaw, history: chatHistory })
     });
     const data = await r.json().catch(()=>({}));
     if (!r.ok || !data.reply) throw new Error(data.reply || 'AI request failed');
+
     thinking.remove();
-    botSay('bot', esc(data.reply).replace(/\n/g, '<br>'));
+    const cards = Array.isArray(data.results) && data.results.length
+      ? data.results.slice(0, 5).map(botCardHTML).join('')
+      : '';
+    botSay('bot', `<div class="ms-intro">${esc(data.reply).replace(/\n/g, '<br>')}</div>${cards}`);
+
+    chatHistory.push({ role: 'user', content: qRaw });
+    chatHistory.push({ role: 'assistant', content: data.reply });
+    if (chatHistory.length > 6) chatHistory.splice(0, chatHistory.length - 6);
   } catch (err){
     thinking.remove();
-    localAnswer(qRaw, f, res);
+    botSay('bot', `Sorry, I couldn't reach the AI service just now. Please try again in a moment.`);
   }
 }
 
