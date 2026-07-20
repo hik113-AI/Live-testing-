@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>New Property Launches · Peninsular Malaysia 2021–2025</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
@@ -17,6 +17,7 @@
   #map{position:fixed;top:0;left:0;width:100vw;height:100vh}
   body{font:14px/1.45 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
   #map{background:#DCE6E3}
+  .leaflet-zoom-anim .leaflet-zoom-animated{transition:transform 0.05s ease-out}
 
   /* ---------- floating panel ---------- */
   .panel{
@@ -29,13 +30,16 @@
     font:inherit}
   .panel-head .chev{flex:none;margin-top:5px;opacity:.65;transition:transform .18s ease}
   .panel.closed .chev{transform:rotate(180deg)}
-  .panel.closed .panel-body{display:none}
+  .panel.closed .panel-body{max-height:0;opacity:0;transform:scaleY(0.92);
+    transition:max-height 0.22s ease,opacity 0.18s ease,transform 0.22s cubic-bezier(0.4,0,1,1)}
   .panel.closed .panel-head .sub{display:none}
   .panel-head:focus-visible{outline:2px solid var(--t1);outline-offset:-3px}
   .panel-head .eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--line);margin-bottom:4px}
   .panel-head h1{font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:21px;line-height:1.2}
   .panel-head .sub{font-size:11.5px;color:rgba(247,245,240,.75);margin-top:5px}
-  .panel-body{padding:14px 16px 16px;max-height:calc(100vh - 96px);overflow-y:auto;overscroll-behavior:contain}
+  .panel-body{padding:14px 16px 16px;max-height:calc(100vh - 96px);overflow-y:auto;overscroll-behavior:contain;
+    transform:scaleY(1);transform-origin:top;opacity:1;
+    transition:max-height 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.25s ease,transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
   .panel-body::-webkit-scrollbar{width:8px}
   .panel-body::-webkit-scrollbar-thumb{background:rgba(27,42,36,.18);border-radius:4px;border:2px solid transparent;background-clip:padding-box}
   .panel-body::-webkit-scrollbar-track{background:transparent}
@@ -111,7 +115,7 @@
 
   /* ---------- legend = price filter (signature) ---------- */
   .legend{
-    position:absolute;z-index:1000;top:16px;right:16px;background:var(--paper);
+    position:absolute;z-index:1000;top:66px;right:16px;background:var(--paper);
     border-radius:12px;box-shadow:var(--shadow);padding:10px 13px;border:1px solid rgba(27,42,36,.08);
   }
   .legend .flabel{margin-top:0}
@@ -125,19 +129,79 @@
   .leg-head:focus-visible{outline:2px solid var(--t1);outline-offset:2px;border-radius:6px}
   .leg-head .chev{transition:transform .18s ease;opacity:.6;flex:none}
   .legend.closed .chev{transform:rotate(180deg)}
-  .legend.closed .leg-body{display:none}
+  .leg-body{overflow:hidden;max-height:200px;opacity:1;transform:scaleY(1);transform-origin:top;
+    transition:max-height 0.28s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s ease,transform 0.28s cubic-bezier(0.34,1.56,0.64,1)}
+  .legend.closed .leg-body{max-height:0;opacity:0;transform:scaleY(0.85);
+    transition:max-height 0.2s ease,opacity 0.15s ease,transform 0.2s cubic-bezier(0.4,0,1,1)}
   .legend{max-width:210px}
 
   /* ---------- markers & clusters ---------- */
-  .pmark{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+  @keyframes marker-fadein{from{opacity:0}to{opacity:1}}
+  .pmark{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);
+    animation:marker-fadein 0.18s ease both;
+    transition:transform 0.14s cubic-bezier(0.34,1.56,0.64,1)}
   .cluster{
     background:var(--ink);color:var(--paper);border-radius:50%;border:2.5px solid var(--paper);
     display:flex;align-items:center;justify-content:center;font-weight:600;
     font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,.3);font-variant-numeric:tabular-nums;
+    animation:marker-fadein 0.22s ease both;
+    transition:transform 0.14s cubic-bezier(0.34,1.56,0.64,1)
   }
+  .leaflet-marker-icon:hover .pmark{transform:scale(1.45)}
+  .leaflet-marker-icon:hover .cluster{transform:scale(1.1)}
 
   /* ---------- popup ---------- */
-  .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:var(--shadow);background:var(--paper)}
+  @keyframes popup-in{
+    from{opacity:0;transform:scale(0.9) translateY(6px)}
+    to{opacity:1;transform:scale(1) translateY(0)}
+  }
+  .leaflet-popup-content-wrapper{border-radius:12px;box-shadow:var(--shadow);background:var(--paper);
+    animation:popup-in 0.22s cubic-bezier(0.34,1.56,0.64,1) both;
+    transform-origin:bottom center}
+  @media(prefers-reduced-motion:reduce){
+    .pmark,.cluster,.leaflet-popup-content-wrapper{animation:none}
+    .leaflet-marker-icon:hover .pmark,.leaflet-marker-icon:hover .cluster{transition:none}
+  }
+
+  /* ---------- amenity markers ---------- */
+  .am-dot{border-radius:50%;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);
+    animation:marker-fadein 0.18s ease both;transition:transform 0.14s cubic-bezier(0.34,1.56,0.64,1)}
+  .leaflet-marker-icon:hover .am-dot{transform:scale(1.5)}
+  .am-cluster{border-radius:50%;border:2.5px solid #fff;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:11px;color:#fff;
+    box-shadow:0 2px 8px rgba(0,0,0,.25);animation:marker-fadein 0.2s ease both}
+  .toggle.am-school:has(input:checked) .tk{background:#4D96E8}
+  .toggle.am-super:has(input:checked) .tk{background:#3DB87A}
+  .toggle.am-hosp:has(input:checked) .tk{background:#E85252}
+  .toggle.am-mall:has(input:checked) .tk{background:#9B6DD4}
+
+  /* ---------- ad slot ---------- */
+  .ad-slot{margin-top:12px;padding-top:12px;border-top:1px solid rgba(27,42,36,.1)}
+  .ad-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(27,42,36,.35);margin-bottom:5px}
+  .ad-unit{border:1px solid rgba(27,42,36,.12);border-radius:9px;padding:10px 12px;
+    background:#fff;display:flex;align-items:center;gap:10px;cursor:pointer;
+    transition:box-shadow .15s,border-color .15s}
+  .ad-unit:hover{box-shadow:0 2px 10px rgba(27,42,36,.12);border-color:rgba(27,42,36,.2)}
+  .ad-icon{width:38px;height:38px;border-radius:7px;background:var(--ink);
+    display:flex;align-items:center;justify-content:center;font-size:20px;flex:none}
+  .ad-text{flex:1;min-width:0}
+  .ad-headline{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.25}
+  .ad-desc{font-size:11px;color:var(--ink-soft);margin-top:2px}
+  .ad-badge{font-size:9.5px;color:rgba(27,42,36,.38);margin-top:5px;letter-spacing:.02em}
+
+  /* ---------- top leaderboard ad ---------- */
+  .ad-top-banner{position:fixed;top:0;left:330px;right:0;height:50px;z-index:950;
+    background:var(--paper);border-bottom:1px solid rgba(27,42,36,.08);
+    display:flex;align-items:center;padding:0 20px;gap:12px}
+  .ad-chip{font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;
+    padding:2px 6px;border:1px solid rgba(27,42,36,.2);border-radius:3px;
+    color:rgba(27,42,36,.45);flex:none;line-height:1.4}
+  .ad-top-title{font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap}
+  .ad-top-sub{font-size:10.5px;color:var(--ink-soft)}
+  .ad-top-cta{margin-left:auto;flex:none;background:var(--ink);color:var(--paper);
+    border:none;border-radius:6px;padding:6px 14px;font-size:11.5px;font-weight:600;
+    cursor:pointer;transition:background .15s;white-space:nowrap}
+  .ad-top-cta:hover{background:#27443A}
   .leaflet-popup-content{margin:0;width:auto !important}
   .pop{padding:14px 16px 15px;width:272px;box-sizing:border-box}
   .pop .tag{display:inline-block;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
@@ -176,7 +240,7 @@
     padding:9px;font-size:12.5px;font-weight:600;cursor:pointer;margin-top:6px}
   .rt-arm.armed{background:#9B6A12}
   .leaflet-container.rt-aiming{cursor:crosshair}
-  .rt-report{position:absolute;z-index:1120;top:16px;right:16px;width:360px;max-height:calc(100% - 32px);
+  .rt-report{position:absolute;z-index:1120;top:66px;right:16px;width:360px;max-height:calc(100% - 82px);
     overflow-y:auto;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);
     border:1px solid rgba(27,42,36,.08);display:none}
   .rt-report.open{display:block}
@@ -202,17 +266,21 @@
   /* ---------- AI chatbot (bottom-center dock, minimized by default) ---------- */
   .botwin{position:absolute;z-index:1200;bottom:22px;left:50%;transform:translateX(-50%);
     width:420px;max-width:calc(100vw - 32px);
-    max-height:calc(100vh - 44px);background:var(--paper);border-radius:16px;
+    max-height:68px;background:var(--paper);border-radius:16px;
     box-shadow:0 16px 50px rgba(27,42,36,.28);border:1px solid rgba(27,42,36,.1);
-    display:flex;flex-direction:column;overflow:hidden}
+    display:flex;flex-direction:column;overflow:hidden;
+    transition:max-height 0.22s ease}
   .bot-head{background:#143C2B;color:#F7F5F0;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;
     flex:none;width:100%;border:none;cursor:pointer;font:inherit;text-align:left}
   .bot-chev{flex:none;opacity:.7;transition:transform .18s ease}
   .botwin.open .bot-chev{transform:rotate(180deg)}
   .bot-body{display:flex;flex-direction:column;min-height:0;flex:1}
-  .botwin:not(.open) .bot-body{display:none}
-  .botwin:not(.open){height:auto}
-  .botwin.open{height:480px}
+  .botwin:not(.open) .bot-body{opacity:0;pointer-events:none;transform:translateY(5px);
+    transition:opacity 0.15s ease,transform 0.15s ease}
+  .botwin.open{height:480px;max-height:480px;
+    transition:max-height 0.32s cubic-bezier(0.34,1.56,0.64,1)}
+  .botwin.open .bot-body{opacity:1;pointer-events:auto;transform:translateY(0);
+    transition:opacity 0.22s ease 0.12s,transform 0.25s ease 0.08s}
   .bot-head h3{font-family:Georgia,serif;font-size:16px;font-weight:600}
   .bot-head .bh-sub{font-size:10.5px;color:#C9A227;letter-spacing:.04em;margin-top:1px}
   .bot-head button{background:none;border:none;color:#F7F5F0;font-size:19px;cursor:pointer;line-height:1;padding:4px}
@@ -242,20 +310,23 @@
   .bot-input button:hover{background:#27443A}
   .bot-note{font-size:9.5px;color:var(--ink-soft);opacity:.7;text-align:center;padding:0 12px 8px}
   @media (max-width:560px){
-    .botwin{left:12px;right:12px;transform:none;width:auto;bottom:14px}
-    .botwin.open{height:56vh}
+    .botwin{left:12px;right:12px;transform:none;width:auto;bottom:max(14px,env(safe-area-inset-bottom,14px))}
+    .botwin.open{height:56vh;max-height:56vh}
   }
 
   /* buyer's guides */
-  .gbtn{position:absolute;z-index:1000;bottom:22px;right:16px;background:var(--ink);color:var(--paper);
+  .gbtn{position:absolute;z-index:1000;bottom:22px;right:60px;background:var(--ink);color:var(--paper);
     border:1px solid rgba(247,245,240,.25);border-radius:999px;padding:10px 16px;font-size:12.5px;
     font-weight:600;cursor:pointer;box-shadow:var(--shadow);display:flex;align-items:center;gap:7px}
   .gbtn:hover{background:#27443A}
   .gbtn .gb-dot{width:7px;height:7px;border-radius:50%;background:#C9A227}
-  .gcard{position:absolute;z-index:1150;top:16px;right:16px;width:350px;max-height:calc(100% - 32px);
+  .gcard{position:absolute;z-index:1150;bottom:70px;right:60px;width:350px;max-height:calc(100vh - 120px);
     overflow-y:auto;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);
-    border:1px solid rgba(27,42,36,.08);display:none}
-  .gcard.open{display:block}
+    border:1px solid rgba(27,42,36,.08);
+    visibility:hidden;transform:scale(0);opacity:0;transform-origin:bottom right;
+    transition:transform 0.25s cubic-bezier(0.4,0,1,1),opacity 0.2s ease,visibility 0s linear 0.25s}
+  .gcard.open{visibility:visible;transform:scale(1);opacity:1;
+    transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s ease,visibility 0s linear 0s}
   .g-head{background:var(--ink);color:var(--paper);padding:14px 16px;position:sticky;top:0;z-index:2;
     display:flex;align-items:center;justify-content:space-between;gap:10px}
   .g-head h2{font-family:Georgia,serif;font-size:18px;font-weight:600}
@@ -277,8 +348,8 @@
   .g-act:hover{background:rgba(20,60,43,.12)}
   .g-act span{display:block;font-weight:400;font-size:11px;color:var(--ink-soft);margin-top:2px}
   @media (max-width:560px){
-    .gcard{width:calc(100% - 24px);right:12px;top:auto;bottom:64px;max-height:70%}
-    .gbtn{bottom:78px;right:12px}
+    .gcard{width:calc(100% - 24px);right:12px;top:auto;bottom:90px;max-height:62%;z-index:1210}
+    .gbtn{bottom:90px;right:12px}
   }
 
   /* paywall */
@@ -347,7 +418,7 @@
   .ramp{height:10px;border-radius:5px;background:linear-gradient(90deg,#EAF1EE,#1B4D43)}
   .ramplbl{display:flex;justify-content:space-between;font-size:10px;color:var(--ink-soft);margin-top:3px;font-variant-numeric:tabular-nums}
   .statcard{
-    position:absolute;z-index:1100;top:16px;right:16px;width:330px;max-height:calc(100% - 32px);
+    position:absolute;z-index:1100;top:66px;right:16px;width:330px;max-height:calc(100% - 82px);
     overflow-y:auto;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);
     border:1px solid rgba(27,42,36,.08);display:none;
   }
@@ -375,11 +446,59 @@
   .leaflet-interactive.state-sel{filter:drop-shadow(0 0 4px rgba(27,42,36,.5))}
 
   @media (max-width:560px){
-    .statcard{width:calc(100% - 24px);right:12px;top:auto;bottom:12px;max-height:62%}
+    /* Top banner — hides on mobile; not enough horizontal space */
+    .ad-top-banner{display:none}
+    /* Panel */
     .panel{width:calc(100% - 24px);left:12px;top:12px}
-    .legend{top:auto;bottom:14px;right:12px;padding:8px 10px;max-width:180px}
+    .panel-body{max-height:calc(68vh - 70px)}
+    /* Bottom-sheet panels — full-width, anchored to bottom, rounded top corners */
+    .statcard{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
+    .rt-report{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
+    /* Legend — hidden on mobile (price filters accessible via panel) */
+    .legend{display:none}
+    /* Leaflet zoom controls — lift above botwin handle */
+    .leaflet-bottom.leaflet-right{bottom:86px}
+    /* Bottom-sheet drag handle on dark headers */
+    .sc-head,.rt-rhead{padding-top:22px;position:relative}
+    .sc-head::before,.rt-rhead::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);
+      width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+  /* ---------- demographics district panel ---------- */
+  .dem-card{position:absolute;z-index:1050;top:66px;right:16px;width:340px;max-height:calc(100% - 82px);overflow-y:auto;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);display:none;overscroll-behavior:contain}
+  .dem-card::-webkit-scrollbar{width:6px}
+  .dem-card::-webkit-scrollbar-thumb{background:rgba(27,42,36,.18);border-radius:3px}
+  .dem-head{background:var(--ink);color:var(--paper);padding:14px 16px;position:sticky;top:0;z-index:2;border-radius:14px 14px 0 0}
+  .dem-head h2{font-size:15px;font-weight:700;margin:0 24px 2px 0}
+  .dem-head .sub{font-size:11px;opacity:.65}
+  .dem-x{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--paper);font-size:19px;cursor:pointer;line-height:1;padding:4px}
+  .dem-body{padding:14px 16px 18px}
+  .dem-section{margin-bottom:14px}
+  .dem-section:last-child{margin-bottom:0}
+  .dem-slabel{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:7px;font-weight:600}
+  .dem-stat{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:3px}
+  .dem-stat .key{font-size:12px;color:var(--ink-soft)}
+  .dem-stat .val{font-size:13px;font-weight:700;color:var(--ink)}
+  .dem-big{font-size:26px;font-weight:800;color:var(--ink);line-height:1}
+  .dem-sub{font-size:11px;color:var(--ink-soft);margin-top:3px;line-height:1.5}
+  .dem-spark{width:100%;height:36px;margin-top:8px;overflow:visible}
+  .dem-divider{border:none;border-top:1px solid rgba(27,42,36,.1);margin:12px 0}
+  .dem-eth-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+  .dem-eth-label{font-size:11px;color:var(--ink);width:108px;flex:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dem-eth-wrap{flex:1;height:7px;background:rgba(27,42,36,.1);border-radius:4px;overflow:hidden}
+  .dem-eth-bar{height:100%;border-radius:4px;background:#2e7364}
+  .dem-eth-pct{font-size:10.5px;color:var(--ink-soft);width:32px;text-align:right;flex:none}
+  .dem-leg-swatch{display:flex;gap:2px;border-radius:4px;overflow:hidden;height:7px;margin-bottom:3px}
+  .dem-leg-swatch div{flex:1}
+  .dem-leg-labels{display:flex;justify-content:space-between}
+  .dem-leg-labels span{font-size:10px;color:var(--ink-soft)}
+  .leaflet-interactive:focus{outline:none}
+  @media(max-width:560px){
+    .dem-card{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
+    .dem-head{border-radius:0;padding-top:22px;position:relative}
+    .dem-head::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);
+      width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)}
+  }
 </style>
 </head>
 <body>
@@ -454,6 +573,24 @@
     </section>
 
     <section class="acc" data-acc>
+      <button class="acc-head" aria-expanded="false"><span>Demographics</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="acc-body"><div class="acc-inner">
+        <div class="chips" role="group" aria-label="Demographics layer">
+          <button class="chip" id="demToggle" disabled>Loading data…</button>
+        </div>
+        <div class="lhint" style="margin-top:6px">Click any district on the map to see income, poverty &amp; population data.</div>
+        <div id="demLegend" style="display:none;margin-top:10px">
+          <div class="dem-leg-swatch">
+            <div style="background:#d7e8e3"></div><div style="background:#9cc9bd"></div>
+            <div style="background:#5ba392"></div><div style="background:#2e7364"></div>
+            <div style="background:#174a40"></div>
+          </div>
+          <div class="dem-leg-labels"><span>Lower pop.</span><span>Higher pop.</span></div>
+        </div>
+      </div></div>
+    </section>
+
+    <section class="acc" data-acc>
       <button class="acc-head" aria-expanded="false"><span>Area project scan</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
       <div class="acc-body"><div class="acc-inner">
         <div class="rt-row"><span>Radius</span>
@@ -461,6 +598,19 @@
           <span class="rt-val" id="rtRadiusVal">5.0 km</span></div>
         <button class="rt-arm" id="rtArm">📍 Click map to set centre</button>
         <div class="rt-hint" id="rtHint" style="margin-top:6px">Pick a radius, then click anywhere on the map to scan all projects within that circle.</div>
+      </div></div>
+    </section>
+
+    <section class="acc" data-acc>
+      <button class="acc-head" aria-expanded="false"><span>Nearby amenities</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="acc-body"><div class="acc-inner">
+        <div class="toggles">
+          <label class="toggle am-school"><span>🎓 Schools</span><input type="checkbox" id="togSchools"><span class="tk"></span></label>
+          <label class="toggle am-super"><span>🛒 Supermarkets</span><input type="checkbox" id="togSupermarkets"><span class="tk"></span></label>
+          <label class="toggle am-hosp"><span>🏥 Hospitals &amp; clinics</span><input type="checkbox" id="togHospitals"><span class="tk"></span></label>
+          <label class="toggle am-mall"><span>🛍️ Shopping malls</span><input type="checkbox" id="togMalls"><span class="tk"></span></label>
+        </div>
+        <div class="lhint" id="amenHint" style="margin-top:7px">Loading amenity data…</div>
       </div></div>
     </section>
 
@@ -480,13 +630,45 @@
     <div class="count"><b id="n">0</b> <span id="nlabel">projects shown</span>
       <br><button class="reset" id="reset">Clear all filters</button>
     </div>
+
+    <div class="ad-slot">
+      <div class="ad-label">Advertisement</div>
+      <div class="ad-unit" role="link" tabindex="0" onclick="void(0)">
+        <div class="ad-icon">🏠</div>
+        <div class="ad-text">
+          <div class="ad-headline">Find your next home with EdgeProp</div>
+          <div class="ad-desc">Malaysia's largest new launches database</div>
+        </div>
+      </div>
+      <div class="ad-badge">Sponsored · EdgeProp.my</div>
+    </div>
+
   </div>
+</div>
+
+<div class="ad-top-banner" aria-label="Advertisement">
+  <span class="ad-chip">Ad</span>
+  <span style="font-size:16px;flex:none">🏗️</span>
+  <div>
+    <div class="ad-top-title">Advertise your development to 50,000+ active buyers</div>
+    <div class="ad-top-sub">Premium placement on EdgeProp New Launches</div>
+  </div>
+  <button class="ad-top-cta">Learn more</button>
 </div>
 
 <div class="statcard" id="sc" role="dialog" aria-label="State statistics">
   <div class="sc-head"><h2 id="scName"></h2><div class="sub" id="scSub"></div>
     <button class="sc-x" id="scX" aria-label="Close">×</button></div>
   <div class="sc-body" id="scBody"></div>
+</div>
+
+<div class="dem-card" id="demCard" role="dialog" aria-label="District demographics">
+  <div class="dem-head">
+    <h2 id="demName"></h2>
+    <div class="sub" id="demState"></div>
+    <button class="dem-x" id="demX" aria-label="Close">×</button>
+  </div>
+  <div class="dem-body" id="demBody"></div>
 </div>
 
 <div class="rt-report" id="rtReport" role="dialog" aria-label="Area project scan">
@@ -570,8 +752,35 @@ const fmtRM = v => {
 };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-const map = L.map('map', {zoomControl:false}).setView([4.1, 102.0], 7);
+const map = L.map('map', {
+  zoomControl: false,
+  scrollWheelZoom: false,
+  zoomSnap: 0,
+}).setView([4.1, 102.0], 7);
 L.control.zoom({position:'bottomright'}).addTo(map);
+
+// Smooth cursor-anchored scroll zoom: batches delta per rAF, chains on zoomend
+// so tile reloads never happen mid-scroll (animate:true suppresses them during each 50ms step)
+(function(){
+  let accum = 0, pt = null, rafPending = false;
+
+  function tryCommit() {
+    if (!accum || map._animatingZoom) return;
+    const zoom = Math.min(19, Math.max(3, map.getZoom() - accum / 200));
+    accum = 0;
+    map.setZoomAround(pt, zoom);
+  }
+
+  map.on('zoomend', tryCommit);
+
+  map.getContainer().addEventListener('wheel', e => {
+    e.preventDefault();
+    const r = map.getContainer().getBoundingClientRect();
+    accum += e.deltaMode === 1 ? e.deltaY * 40 : e.deltaMode === 2 ? e.deltaY * 800 : e.deltaY;
+    pt = L.point(e.clientX - r.left, e.clientY - r.top);
+    if (!rafPending) { rafPending = true; requestAnimationFrame(() => { rafPending = false; tryCommit(); }); }
+  }, {passive: false});
+})();
 const baseCarto = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a> · Data: TEDUH/KPKT',
   maxZoom:19, subdomains:'abcd'
@@ -605,7 +814,7 @@ function setBasemap(which){
 }
 
 const cluster = L.markerClusterGroup({
-  chunkedLoading:true, maxClusterRadius:52, spiderfyOnMaxZoom:true, disableClusteringAtZoom:15,
+  chunkedLoading:true, maxClusterRadius:52, spiderfyOnMaxZoom:true, disableClusteringAtZoom:15, animate:true,
   iconCreateFunction: c => {
     const n = c.getChildCount();
     const s = n < 50 ? 32 : n < 300 ? 38 : 46;
@@ -765,9 +974,10 @@ function buildTipHTML(d){
 
 function renderCatchment(hits, latlng){
   const rep = document.getElementById('rtReport');
-  rep.classList.add('open'); syncLegendVisibility();
+  rep.classList.add('open'); syncLegendVisibility(); closePanelMobile();
   document.getElementById('gcard').classList.remove('open');
   document.getElementById('sc').classList.remove('open');
+  closeDemPanel();
   document.getElementById('rtTitle').textContent = rtState.radius.toFixed(1)+' km area scan';
   document.getElementById('rtSub').textContent =
     `${latlng.lat.toFixed(4)}, ${latlng.lng.toFixed(4)} · ${hits.length} project${hits.length!==1?'s':''}`;
@@ -984,7 +1194,7 @@ function guideArticle(id){
 document.getElementById('gbtn').addEventListener('click', () => {
   gcard.classList.add('open');
   document.getElementById('sc').classList.remove('open');
-  guideList(); syncLegendVisibility();
+  guideList(); syncLegendVisibility(); closePanelMobile();
 });
 document.getElementById('gX').addEventListener('click', () => { gcard.classList.remove('open'); syncLegendVisibility(); });
 document.getElementById('gBody').addEventListener('click', e => {
@@ -1184,20 +1394,41 @@ panelBtn.addEventListener('click', () => {
   const closed = panelEl.classList.toggle('closed');
   panelBtn.setAttribute('aria-expanded', String(!closed));
 });
+// auto-close panel on mobile so the map is visible on first load
+if (window.matchMedia('(max-width:560px)').matches){
+  panelEl.classList.add('closed');
+  panelBtn.setAttribute('aria-expanded','false');
+}
+// helper: collapse the panel when a bottom-sheet card opens on mobile
+function closePanelMobile(){
+  if (window.matchMedia('(max-width:560px)').matches && !panelEl.classList.contains('closed')){
+    panelEl.classList.add('closed');
+    panelBtn.setAttribute('aria-expanded','false');
+  }
+}
 
 // legend collapse
 // keep the top-right legend out of the way when a right-side card is open
 function syncLegendVisibility(){
   const anyCard = ['sc','rtReport','gcard'].some(id => document.getElementById(id).classList.contains('open'));
-  const legend = document.getElementById('priceLegend');
-  // only relevant in projects view (legend is hidden in heatmap anyway)
-  legend.style.visibility = (anyCard && view==='proj') ? 'hidden' : '';
+  if (anyCard && view === 'proj') {
+    if (!legEl.classList.contains('closed')) {
+      legEl.dataset.autoCompacted = '1';
+      legEl.classList.add('closed');
+      legBtn.setAttribute('aria-expanded', 'false');
+    }
+  } else if (legEl.dataset.autoCompacted) {
+    delete legEl.dataset.autoCompacted;
+    legEl.classList.remove('closed');
+    legBtn.setAttribute('aria-expanded', 'true');
+  }
 }
 const legEl = document.getElementById('priceLegend');
 const legBtn = document.getElementById('legToggle');
 legBtn.addEventListener('click', () => {
   const closed = legEl.classList.toggle('closed');
   legBtn.setAttribute('aria-expanded', String(!closed));
+  delete legEl.dataset.autoCompacted;
 });
 // start collapsed on small screens so it never overlaps the menu panel
 if (window.matchMedia('(max-width: 700px), (max-height: 640px)').matches){
@@ -1219,7 +1450,8 @@ const RAIL_MATCH = {
   'ERL · KLIA Ekspres / Transit':'KLIA Ekspres',
   'KTM Komuter · Seremban Line':'Laluan Seremban',
   'KTM Komuter · Port Klang Line':'Port Klang',
-  'KTM ETS / Intercity · West Coast Line':'ETS Gold'
+  'KTM ETS / Intercity · West Coast Line':'ETS Gold',
+  'BRT Sunway Line':'BRT Sunway Line'
 };
 function accurateRailPath(lineName){
   const sub = RAIL_MATCH[lineName];
@@ -1235,7 +1467,25 @@ const RAIL = [{"name":"LRT Kelana Jaya Line","color":"#D50032","group":"urban","
 // ---- Accurate station coordinate correction (from amenities.json / OSM) ----
 // Rewrites each station's [lat,lon] in place where an accurate match exists.
 // Unmatched stations (BRT, ECRL, a few name-variants) keep their original coords.
-const STATION_FIX = {"kampungkokpasir":[6.16294,102.20777],"tumpat":[6.19903,102.16751],"wakafbharu":[6.11824,102.20067],"touban":[5.9658,102.14395],"rantaupanjang":[6.02156,101.9765],"bunutsusu":[6.09449,102.17442],"chichatinggi":[5.99636,102.14195],"sungaikeladi":[5.91779,102.1562],"kampungmachang":[6.06461,102.15377],"kampungslowmachang":[6.06459,102.15381],"pasirmas":[6.04263,102.14245],"temangan":[5.70264,102.15186],"bukitpanau":[5.89112,102.15729],"tanahmerah":[5.80625,102.14685],"sungainal":[5.58933,102.17955],"kualakrai":[5.52989,102.20296],"pahi":[5.47146,102.22267],"manekurai":[5.39114,102.23223],"kampungbarusungaimengkuang":[5.33025,102.2034],"kemubu":[5.30011,102.02],"srimahligai":[5.24834,102.00964],"sungaitasin":[5.21338,102.01248],"kualagris":[5.39033,102.06428],"ulutemiang":[5.30779,102.15676],"kampungbarubukitabu":[5.32968,102.12149],"bukitabu":[5.37222,102.0851],"srijaya":[5.26824,102.00952],"sribintang":[5.23068,102.01027],"dabong":[5.37675,102.00993],"nibongtebal":[5.16945,100.47978],"simpangampat":[5.28593,100.48087],"bukitmertajam":[5.36636,100.44746],"bukittengah":[5.36452,100.42161],"tasekgelugor":[5.48213,100.49791],"butterworth":[5.39336,100.36657],"stesenbawahbukitbendera":[5.40877,100.27707],"middlestation":[5.41579,100.27382],"upperstation":[5.42368,100.26944],"uppertunnelstation":[5.42301,100.26979],"gurun":[5.82435,100.47775],"kobah":[5.97208,100.4406],"anakbukit":[6.18331,100.37481],"kodiang":[6.37077,100.30283],"padangbesar":[6.66268,100.3202],"bukitketri":[6.52356,100.25686],"arau":[6.43191,100.26832],"paritbuntar":[5.13075,100.48637],"baganserai":[5.02845,100.52726],"kamunting":[4.89561,100.7191],"taiping":[4.85294,100.73213],"kualakangsar":[4.77624,100.93189],"sungaisiput":[4.81881,101.0713],"padangrengas":[4.77782,100.85767],"jerekbaru":[5.17377,102.00998],"bertam":[5.15163,102.04385],"sungaiserian":[5.03382,102.05041],"kampungsungaiserian":[5.02478,102.03909],"lepantupai":[4.78819,102.01251],"bertambaru":[5.14347,102.04566],"limaukasturi":[5.07944,102.06942],"sungaikoyan":[4.98706,102.01557],"guamusang":[4.87879,101.96662],"kampar":[4.30274,101.15347],"kotabaharu":[4.40256,101.07917],"tasek":[4.6528,101.12027],"ipoh":[4.59815,101.07339],"batugajah":[4.45984,101.0495],"lahat":[4.53951,101.05331],"tanjungmalim":[3.68477,101.51825],"slimriver":[3.82684,101.40232],"behrang":[3.74539,101.44983],"tapahroad":[4.17385,101.18948],"sungkai":[4.00604,101.3015],"batangkali":[3.46853,101.63772],"kualakububharu":[3.5532,101.63953],"serendah":[3.37605,101.61448],"rasa":[3.50027,101.63415],"kubangrusa":[4.601,101.98454],"padangtengku":[4.23281,101.98991],"telukgunung":[4.64553,101.99396],"mentarabaru":[4.73064,102.01066],"kampungberkam":[4.29345,101.92212],"bukitbetong":[4.25781,101.92527],"dura":[4.33441,101.91764],"telang":[4.24866,101.95181],"chegarperah":[4.42203,101.93168],"aurgading":[4.35838,101.92157],"sungaiyu":[4.56155,101.98638],"kualalipis":[4.18721,102.05302],"kerambit":[4.11706,102.19936],"mela":[4.0753,102.27157],"merapoh":[4.69321,102.00316],"jerantut":[3.93714,102.35773],"jenderak":[3.80711,102.35925],"kualakrau":[3.70962,102.36694],"mentakab":[3.48444,102.34327],"mengkarak":[3.3312,102.42027],"triang":[3.24619,102.41126],"kemayan":[3.13564,102.37044],"bahau":[2.81136,102.40389],"rembau":[2.5929,102.09443],"gemas":[2.57974,102.61376],"batangmelaka":[2.47378,102.41561],"sungaigadut":[2.66048,101.99624],"labu":[2.75423,101.82657],"batangbenar":[2.83045,101.827],"senawang":[2.69065,101.9717],"seremban":[2.71863,101.94081],"nilai":[2.80298,101.80026],"tiroi":[2.74121,101.87177],"segamat":[2.50743,102.81319],"labis":[2.38347,103.01985],"bekok":[2.29686,103.1291],"pulausebangtampin":[2.46388,102.22627],"layanglayang":[1.81184,103.47752],"kluang":[2.03535,103.31661],"paloh":[2.19087,103.18988],"rengam":[1.88399,103.40397],"kulai":[1.66422,103.5981],"kempasbaru":[1.53578,103.72346],"johorbahrusentral":[1.46297,103.76463],"bukitchagar":[1.46624,103.76219],"pasirgudang":[1.44809,103.92547],"kliaterminal1mainbuilding":[2.75259,101.70566],"kliaterminal1satellitebuilding":[2.74743,101.7128],"kliat1":[2.75473,101.70464],"erlsalaktinggi":[2.8254,101.71307],"16sierra":[2.96529,101.65487],"cyberjayautara":[2.94923,101.65749],"cyberjayacitycentre":[2.93897,101.66561],"putrajayasentral":[2.93141,101.67147],"kliat2":[2.74453,101.68518],"erlputrajayacyberjaya":[2.93183,101.67102],"bukitbadak":[3.03626,101.4703],"pelabuhanklang":[2.99953,101.39147],"jalankastam":[3.01303,101.40263],"kampungrajauda":[3.02015,101.41025],"telukpulai":[3.04086,101.4321],"pulauindah":[2.96078,101.34677],"jambatankota":[3.0475,101.44759],"jalanmeru":[3.05906,101.45206],"pasarklang":[3.06794,101.45085],"tamanselatan":[3.02685,101.44241],"seriandalas":[3.01604,101.44075],"klangjaya":[3.00544,101.44184],"bandarbukittinggi":[2.99326,101.44593],"johansetia":[2.97642,101.45935],"bandarbaruklang":[3.06268,101.46593],"klang":[3.04309,101.44967],"kepongsentral":[3.20871,101.62853],"kampungdatoharun":[3.08446,101.6323],"serisetia":[3.08451,101.62196],"setiajaya":[3.08318,101.61143],"shahalam":[3.05637,101.52534],"asiajaya":[3.10435,101.63773],"tamanbahagia":[3.11069,101.61272],"kelanajaya":[3.11245,101.6045],"tamanjaya":[3.10406,101.64532],"tamanparamount":[3.1047,101.62318],"serdang":[3.02352,101.71593],"padangjawa":[3.05246,101.49274],"batutiga":[3.07584,101.55958],"subangjaya":[3.08459,101.58743],"jalantempler":[3.08347,101.6565],"kinrarabk5":[3.05045,101.64427],"putraheights":[2.99605,101.57558],"alamsutera":[3.05466,101.65654],"ioipuchongjaya":[3.04813,101.62108],"pusatbandarpuchong":[3.03323,101.61609],"tamanperindustrianpuchong":[3.02272,101.61354],"bandarputeri":[3.01695,101.61293],"puchongprima":[2.99991,101.59666],"alammegah":[3.02302,101.57211],"wawasan":[3.03505,101.5881],"taipan":[3.04784,101.59015],"puchongperdana":[3.00783,101.60528],"subangalam":[3.0096,101.57212],"aradamansara":[3.10843,101.58658],"glenmarie":[3.09592,101.59027],"lembahsubang":[3.11206,101.5913],"kampungselamat":[3.19717,101.57841],"surian":[3.1496,101.59371],"mutiaradamansara":[3.15519,101.60882],"bandarutama":[3.14665,101.61881],"kwasadamansara":[3.17631,101.5724],"kwasasentral":[3.16983,101.56484],"kotadamansara":[3.15018,101.57874],"sridamansaratimur":[3.20762,101.62862],"sridamansarasentral":[3.19854,101.62113],"sridamansarabarat":[3.19823,101.60841],"damansaradamai":[3.19975,101.5929],"upm":[3.00849,101.70539],"serdangrayaselatan":[3.02848,101.7075],"serdangrayautara":[3.04171,101.70491],"serdangjaya":[3.02155,101.70894],"seksyen7shahalam":[3.06746,101.48697],"uitmshahalam":[3.06279,101.50117],"tamanequine":[2.98934,101.67258],"putrapermai":[2.98311,101.66058],"sungaibuloh":[3.20624,101.57999],"bu11bandarutama11":[3.13344,101.60467],"damansaraidaman":[3.12285,101.59425],"datomenteri":[3.06993,101.52117],"kayuara":[3.13491,101.6168],"subang":[3.10624,101.59124],"glenmarie2":[3.09533,101.5888],"kerjaya":[3.08229,101.56197],"stadiumshahalam":[3.07996,101.54912],"seputeh":[3.11369,101.68142],"klsentral":[3.13411,101.68652],"klcc":[3.15925,101.71337],"masjidjamek":[3.14941,101.69646],"cheras":[3.1127,101.7143],"pudu":[3.13494,101.71202],"maluri":[3.12327,101.72694],"miharja":[3.12097,101.71784],"hangtuah":[3.13988,101.7063],"titiwangsa":[3.17356,101.69525],"bandartunrazak":[3.08964,101.71245],"klsentralmonorail":[3.13273,101.68786],"chansowlin":[3.12777,101.71559],"putra":[3.16556,101.69079],"kerinchi":[3.11549,101.66849],"sultanismail":[3.1612,101.69413],"plazarakyat":[3.14425,101.70209],"tunsambanthan":[3.13145,101.69087],"sentultimur":[3.18591,101.69531],"sripetaling":[3.0614,101.68707],"srirampai":[3.19909,101.73735],"maharajalela":[3.13896,101.69919],"damai":[3.16447,101.72441],"pwtc":[3.16657,101.69359],"bangsar":[3.12745,101.67902],"universiti":[3.11455,101.6617],"abdullahhukum":[3.11874,101.67293],"bukitjalil":[3.05814,101.69221],"segambut":[3.18644,101.6642],"bukitnanas":[3.15611,101.70486],"bandartasikselatan":[3.07629,101.71109],"salakselatan":[3.1021,101.70629],"chowkit":[3.1674,101.69838],"bukitbintang":[3.14607,101.71148],"rajachulan":[3.15089,101.71043],"imbi":[3.1428,101.70942],"wangsamaju":[3.20575,101.73191],"medantuanku":[3.15929,101.69892],"kepong":[3.20281,101.63739],"bandaraya":[3.15552,101.69442],"sungaibesi":[3.06394,101.70801],"pasarseni":[3.14242,101.69629],"erlbandartasikselatan":[3.0763,101.71032],"tamanmelati":[3.21953,101.72187],"jelatek":[3.16725,101.73532],"datokeramat":[3.16506,101.73186],"midvalley":[3.11868,101.67888],"sentul":[3.17857,101.69549],"pantaidalam":[3.09563,101.67005],"banknegara":[3.15444,101.69292],"batukentonmen":[3.19828,101.68122],"kampungbatu":[3.2048,101.67564],"tamanwahyu":[3.21449,101.67219],"muhibbah":[3.06193,101.6626],"awanbesar":[3.06208,101.67063],"tamantundrismail":[3.13603,101.63086],"phileodamansara":[3.12921,101.64296],"pusatbandardamansara":[3.14328,101.66238],"semantan":[3.15096,101.66536],"merdeka":[3.1429,101.70219],"petaling":[3.08607,101.66423],"tamanpertama":[3.11264,101.7293],"tamanmidah":[3.10443,101.73224],"tamanmutiara":[3.0913,101.74039],"tamanconnaught":[3.07919,101.74514],"muziumnegara":[3.13713,101.68734],"cochrane":[3.13248,101.723],"tunrazakexchange":[3.14281,101.71996],"kentonmen":[3.19549,101.67961],"sridelima":[3.20721,101.66556],"jinjang":[3.20952,101.6558],"kepongbaru":[3.21168,101.64819],"metroprima":[3.21451,101.64039],"sentulbarat":[3.17895,101.68515],"jalanipoh":[3.18941,101.68112],"tamannagaemas":[3.07772,101.69953],"kuchai":[3.08958,101.6941],"dangwangi":[3.15671,101.70203],"angkasapuri":[3.11269,101.67344],"ampangpark":[3.16174,101.71798],"persiaranklcc":[3.15685,101.71807],"hospitalkualalumpur":[3.17378,101.70153],"rajauda":[3.16785,101.71114],"conlay":[3.15091,101.7184],"kualalumpur":[3.14079,101.69377],"gombak":[3.23122,101.72443],"setiawangsa":[3.17574,101.73589],"kuang":[3.25826,101.55468],"rawang":[3.3189,101.57502],"batucaves":[3.23778,101.68144],"ukm":[2.93958,101.78779],"pandanjaya":[3.13022,101.73896],"pandanindah":[3.13476,101.74669],"bangi":[2.904,101.7861],"cempaka":[3.13848,101.75303],"cahaya":[3.14061,101.75659],"ampang":[3.15035,101.76022],"tamansuntex":[3.07161,101.76348],"sriraya":[3.06218,101.773],"bandartunhusseinonn":[3.04836,101.77501],"batu11cheras":[3.0413,101.77334],"bukitdukung":[3.02639,101.77109],"sungaijernih":[3.00084,101.78412],"stadiumkajang":[2.99406,101.7862],"kajang":[2.9831,101.79033],"kajang2":[2.96254,101.79206],"cgcglenmarie":[3.09592,101.59027],"bandarayauob":[3.15552,101.69442],"kentomen":[3.19549,101.67961]};
+const STATION_FIX = {"kampungkokpasir":[6.16294,102.20777],"tumpat":[6.19903,102.16751],"wakafbharu":[6.11824,102.20067],"touban":[5.9658,102.14395],"rantaupanjang":[6.02156,101.9765],"bunutsusu":[6.09449,102.17442],"chichatinggi":[5.99636,102.14195],"sungaikeladi":[5.91779,102.1562],"kampungmachang":[6.06461,102.15377],"kampungslowmachang":[6.06459,102.15381],"pasirmas":[6.04263,102.14245],"temangan":[5.70264,102.15186],"bukitpanau":[5.89112,102.15729],"tanahmerah":[5.80625,102.14685],"sungainal":[5.58933,102.17955],"kualakrai":[5.52989,102.20296],"pahi":[5.47146,102.22267],"manekurai":[5.39114,102.23223],"kampungbarusungaimengkuang":[5.33025,102.2034],"kemubu":[5.30011,102.02],"srimahligai":[5.24834,102.00964],"sungaitasin":[5.21338,102.01248],"kualagris":[5.39033,102.06428],"ulutemiang":[5.30779,102.15676],"kampungbarubukitabu":[5.32968,102.12149],"bukitabu":[5.37222,102.0851],"srijaya":[5.26824,102.00952],"sribintang":[5.23068,102.01027],"dabong":[5.37675,102.00993],"nibongtebal":[5.16945,100.47978],"simpangampat":[5.28593,100.48087],"bukitmertajam":[5.36636,100.44746],"bukittengah":[5.36452,100.42161],"tasekgelugor":[5.48213,100.49791],"butterworth":[5.39336,100.36657],"stesenbawahbukitbendera":[5.40877,100.27707],"middlestation":[5.41579,100.27382],"upperstation":[5.42368,100.26944],"uppertunnelstation":[5.42301,100.26979],"gurun":[5.82435,100.47775],"kobah":[5.97208,100.4406],"anakbukit":[6.18331,100.37481],"kodiang":[6.37077,100.30283],"padangbesar":[6.66268,100.3202],"bukitketri":[6.52356,100.25686],"arau":[6.43191,100.26832],"paritbuntar":[5.13075,100.48637],"baganserai":[5.02845,100.52726],"kamunting":[4.89561,100.7191],"taiping":[4.85294,100.73213],"kualakangsar":[4.77624,100.93189],"sungaisiput":[4.81881,101.0713],"padangrengas":[4.77782,100.85767],"jerekbaru":[5.17377,102.00998],"bertam":[5.15163,102.04385],"sungaiserian":[5.03382,102.05041],"kampungsungaiserian":[5.02478,102.03909],"lepantupai":[4.78819,102.01251],"bertambaru":[5.14347,102.04566],"limaukasturi":[5.07944,102.06942],"sungaikoyan":[4.98706,102.01557],"guamusang":[4.87879,101.96662],"kampar":[4.30274,101.15347],"kotabaharu":[4.40256,101.07917],"tasek":[4.6528,101.12027],"ipoh":[4.59815,101.07339],"batugajah":[4.45984,101.0495],"lahat":[4.53951,101.05331],"tanjungmalim":[3.68477,101.51825],"slimriver":[3.82684,101.40232],"behrang":[3.74539,101.44983],"tapahroad":[4.17385,101.18948],"sungkai":[4.00604,101.3015],"batangkali":[3.46853,101.63772],"kualakububharu":[3.5532,101.63953],"serendah":[3.37605,101.61448],"rasa":[3.50027,101.63415],"kubangrusa":[4.601,101.98454],"padangtengku":[4.23281,101.98991],"telukgunung":[4.64553,101.99396],"mentarabaru":[4.73064,102.01066],"kampungberkam":[4.29345,101.92212],"bukitbetong":[4.25781,101.92527],"dura":[4.33441,101.91764],"telang":[4.24866,101.95181],"chegarperah":[4.42203,101.93168],"aurgading":[4.35838,101.92157],"sungaiyu":[4.56155,101.98638],"kualalipis":[4.18721,102.05302],"kerambit":[4.11706,102.19936],"mela":[4.0753,102.27157],"merapoh":[4.69321,102.00316],"jerantut":[3.93714,102.35773],"jenderak":[3.80711,102.35925],"kualakrau":[3.70962,102.36694],"mentakab":[3.48444,102.34327],"mengkarak":[3.3312,102.42027],"triang":[3.24619,102.41126],"kemayan":[3.13564,102.37044],"bahau":[2.81136,102.40389],"rembau":[2.5929,102.09443],"gemas":[2.57974,102.61376],"batangmelaka":[2.47378,102.41561],"sungaigadut":[2.66048,101.99624],"labu":[2.75423,101.82657],"batangbenar":[2.83045,101.827],"senawang":[2.69065,101.9717],"seremban":[2.71863,101.94081],"nilai":[2.80298,101.80026],"tiroi":[2.74121,101.87177],"segamat":[2.50743,102.81319],"labis":[2.38347,103.01985],"bekok":[2.29686,103.1291],"pulausebangtampin":[2.46388,102.22627],"layanglayang":[1.81184,103.47752],"kluang":[2.03535,103.31661],"paloh":[2.19087,103.18988],"rengam":[1.88399,103.40397],"kulai":[1.66422,103.5981],"kempasbaru":[1.53578,103.72346],"johorbahrusentral":[1.46297,103.76463],"bukitchagar":[1.46624,103.76219],"pasirgudang":[1.44809,103.92547],"kliaterminal1mainbuilding":[2.75259,101.70566],"kliaterminal1satellitebuilding":[2.74743,101.7128],"kliat1":[2.75473,101.70464],"erlsalaktinggi":[2.8254,101.71307],"16sierra":[2.96529,101.65487],"cyberjayautara":[2.94923,101.65749],"cyberjayacitycentre":[2.93897,101.66561],"putrajayasentral":[2.93141,101.67147],"kliat2":[2.74453,101.68518],"erlputrajayacyberjaya":[2.93183,101.67102],"bukitbadak":[3.03626,101.4703],"pelabuhanklang":[2.99953,101.39147],"jalankastam":[3.01303,101.40263],"kampungrajauda":[3.02015,101.41025],"telukpulai":[3.04086,101.4321],"pulauindah":[2.96078,101.34677],"jambatankota":[3.0475,101.44759],"jalanmeru":[3.05906,101.45206],"pasarklang":[3.06794,101.45085],"tamanselatan":[3.02685,101.44241],"seriandalas":[3.01604,101.44075],"klangjaya":[3.00544,101.44184],"bandarbukittinggi":[2.99326,101.44593],"johansetia":[2.97642,101.45935],"bandarbaruklang":[3.06268,101.46593],"klang":[3.04309,101.44967],"kepongsentral":[3.20871,101.62853],"kampungdatoharun":[3.08446,101.6323],"serisetia":[3.08451,101.62196],"setiajaya":[3.08318,101.61143],"shahalam":[3.05637,101.52534],"asiajaya":[3.10435,101.63773],"tamanbahagia":[3.11069,101.61272],"kelanajaya":[3.11245,101.6045],"tamanjaya":[3.10406,101.64532],"tamanparamount":[3.1047,101.62318],"serdang":[3.02352,101.71593],"padangjawa":[3.05246,101.49274],"batutiga":[3.07584,101.55958],"subangjaya":[3.08459,101.58743],"jalantempler":[3.08347,101.6565],"kinrarabk5":[3.05045,101.64427],"putraheights":[2.99605,101.57558],"alamsutera":[3.05466,101.65654],"ioipuchongjaya":[3.04813,101.62108],"pusatbandarpuchong":[3.03323,101.61609],"tamanperindustrianpuchong":[3.02272,101.61354],"bandarputeri":[3.01695,101.61293],"puchongprima":[2.99991,101.59666],"alammegah":[3.02302,101.57211],"wawasan":[3.03505,101.5881],"taipan":[3.04784,101.59015],"puchongperdana":[3.00783,101.60528],"subangalam":[3.0096,101.57212],"aradamansara":[3.10843,101.58658],"glenmarie":[3.09592,101.59027],"lembahsubang":[3.11206,101.5913],"kampungselamat":[3.19717,101.57841],"surian":[3.1496,101.59371],"mutiaradamansara":[3.15519,101.60882],"bandarutama":[3.14665,101.61881],"kwasadamansara":[3.17631,101.5724],"kwasasentral":[3.16983,101.56484],"kotadamansara":[3.15018,101.57874],"sridamansaratimur":[3.20762,101.62862],"sridamansarasentral":[3.19854,101.62113],"sridamansarabarat":[3.19823,101.60841],"damansaradamai":[3.19975,101.5929],"upm":[3.00849,101.70539],"serdangrayaselatan":[3.02848,101.7075],"serdangrayautara":[3.04171,101.70491],"serdangjaya":[3.02155,101.70894],"seksyen7shahalam":[3.06746,101.48697],"uitmshahalam":[3.06279,101.50117],"tamanequine":[2.98934,101.67258],"putrapermai":[2.98311,101.66058],"sungaibuloh":[3.20624,101.57999],"bu11bandarutama11":[3.13344,101.60467],"damansaraidaman":[3.12285,101.59425],"datomenteri":[3.06993,101.52117],"kayuara":[3.13491,101.6168],"subang":[3.10624,101.59124],"glenmarie2":[3.09533,101.5888],"kerjaya":[3.08229,101.56197],"stadiumshahalam":[3.07996,101.54912],"seputeh":[3.11369,101.68142],"klsentral":[3.13411,101.68652],"klcc":[3.15925,101.71337],"masjidjamek":[3.14941,101.69646],"cheras":[3.1127,101.7143],"pudu":[3.13494,101.71202],"maluri":[3.12327,101.72694],"miharja":[3.12097,101.71784],"hangtuah":[3.13988,101.7063],"titiwangsa":[3.17356,101.69525],"bandartunrazak":[3.08964,101.71245],"klsentralmonorail":[3.13273,101.68786],"chansowlin":[3.12777,101.71559],"putra":[3.16556,101.69079],"kerinchi":[3.11549,101.66849],"sultanismail":[3.1612,101.69413],"plazarakyat":[3.14425,101.70209],"tunsambanthan":[3.13145,101.69087],"sentultimur":[3.18591,101.69531],"sripetaling":[3.0614,101.68707],"srirampai":[3.19909,101.73735],"maharajalela":[3.13896,101.69919],"damai":[3.16447,101.72441],"pwtc":[3.16657,101.69359],"bangsar":[3.12745,101.67902],"universiti":[3.11455,101.6617],"abdullahhukum":[3.11874,101.67293],"bukitjalil":[3.05814,101.69221],"segambut":[3.18644,101.6642],"bukitnanas":[3.15611,101.70486],"bandartasikselatan":[3.07629,101.71109],"salakselatan":[3.1021,101.70629],"chowkit":[3.1674,101.69838],"bukitbintang":[3.14607,101.71148],"rajachulan":[3.15089,101.71043],"imbi":[3.1428,101.70942],"wangsamaju":[3.20575,101.73191],"medantuanku":[3.15929,101.69892],"kepong":[3.20281,101.63739],"bandaraya":[3.15552,101.69442],"sungaibesi":[3.06394,101.70801],"pasarseni":[3.14242,101.69629],"erlbandartasikselatan":[3.0763,101.71032],"tamanmelati":[3.21953,101.72187],"jelatek":[3.16725,101.73532],"datokeramat":[3.16506,101.73186],"midvalley":[3.11868,101.67888],"sentul":[3.17857,101.69549],"pantaidalam":[3.09563,101.67005],"banknegara":[3.15444,101.69292],"batukentonmen":[3.19828,101.68122],"kampungbatu":[3.2048,101.67564],"tamanwahyu":[3.21449,101.67219],"muhibbah":[3.06193,101.6626],"awanbesar":[3.06208,101.67063],"tamantundrismail":[3.13603,101.63086],"phileodamansara":[3.12921,101.64296],"pusatbandardamansara":[3.14328,101.66238],"semantan":[3.15096,101.66536],"merdeka":[3.1429,101.70219],"petaling":[3.08607,101.66423],"tamanpertama":[3.11264,101.7293],"tamanmidah":[3.10443,101.73224],"tamanmutiara":[3.0913,101.74039],"tamanconnaught":[3.07919,101.74514],"muziumnegara":[3.13713,101.68734],"cochrane":[3.13248,101.723],"tunrazakexchange":[3.14281,101.71996],"kentonmen":[3.19549,101.67961],"sridelima":[3.20721,101.66556],"jinjang":[3.20952,101.6558],"kepongbaru":[3.21168,101.64819],"metroprima":[3.21451,101.64039],"sentulbarat":[3.17895,101.68515],"jalanipoh":[3.18941,101.68112],"tamannagaemas":[3.07772,101.69953],"kuchai":[3.08958,101.6941],"dangwangi":[3.15671,101.70203],"angkasapuri":[3.11269,101.67344],"ampangpark":[3.16174,101.71798],"persiaranklcc":[3.15685,101.71807],"hospitalkualalumpur":[3.17378,101.70153],"rajauda":[3.16785,101.71114],"conlay":[3.15091,101.7184],"kualalumpur":[3.14079,101.69377],"gombak":[3.23122,101.72443],"setiawangsa":[3.17574,101.73589],"kuang":[3.25826,101.55468],"rawang":[3.3189,101.57502],"batucaves":[3.23778,101.68144],"ukm":[2.93958,101.78779],"pandanjaya":[3.13022,101.73896],"pandanindah":[3.13476,101.74669],"bangi":[2.904,101.7861],"cempaka":[3.13848,101.75303],"cahaya":[3.14061,101.75659],"ampang":[3.15035,101.76022],"tamansuntex":[3.07161,101.76348],"sriraya":[3.06218,101.773],"bandartunhusseinonn":[3.04836,101.77501],"batu11cheras":[3.0413,101.77334],"bukitdukung":[3.02639,101.77109],"sungaijernih":[3.00084,101.78412],"stadiumkajang":[2.99406,101.7862],"kajang":[2.9831,101.79033],"kajang2":[2.96254,101.79206],"cgcglenmarie":[3.09592,101.59027],"bandarayauob":[3.15552,101.69442],"kentomen":[3.19549,101.67961],
+// LRT KJ renamed / new-name stations
+"kampungbarucbpcoopbankpertama":[3.161386,101.706608],"bankrakyatbangsar":[3.12745,101.67902],
+"ss15":[3.075972,101.585983],"ss18":[3.067182,101.585945],"usj7":[3.054956,101.592194],"usj21":[3.029881,101.581711],
+// BRT Sunway Line
+"sunwaysetiajaya":[3.0828,101.6123],"mentari":[3.0761,101.6101],"sunwaylagoon":[3.0706,101.6107],
+"sunmed":[3.0656,101.6087],"sunumonash":[3.0654,101.6016],"southquayusj1":[3.0617,101.5969],
+// ERL name variants
+"putrajayacyberjaya":[2.93183,101.67102],"salaktinggi":[2.8254,101.71307],
+// KTM name/spelling variants
+"bandartasekselatan":[3.07629,101.71109],"telukgadong":[3.0322,101.4237],
+"alorsetar":[6.1192,100.3648],"sungaipetani":[5.647,100.4878],"jbsentral":[1.46297,103.76463],
+// ECRL — under construction, positions indicative
+"kotabahrutunjong":[6.054,102.218],"pasirputeh":[5.832,102.405],"jertih":[5.734,102.49],
+"bandarpermaisuri":[5.515,102.717],"kualaterengganu":[5.298,103.088],"dungun":[4.76,103.395],
+"kemasik":[4.435,103.45],"chukai":[4.25,103.418],"cherating":[4.12,103.39],
+"kuantankotasas":[3.832,103.222],"payabesar":[3.752,103.13],"maran":[3.585,102.77],
+"temerloh":[3.45,102.42],"bentong":[3.52,101.91],"gombakitt":[3.2317,101.7244],
+"puncakalam":[3.227,101.455],"kapar":[3.137,101.404],"portklang":[3.0,101.392]};
 (function fixStations(){
   const norm = s => (s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
   let fixed=0, kept=0;
@@ -1467,7 +1717,7 @@ function openCard(nm, s, ly){
     <div class="splitlbl"><span>Freehold ${fpct}%</span><span>Leasehold ${100-fpct}%</span></div>
     <div class="sc-sec">Largest developers (by units)</div>${isPro ? devs : lockBlock('Developer league table — Pro')}`;
   document.getElementById('gcard').classList.remove('open');
-  document.getElementById('sc').classList.add('open'); syncLegendVisibility();
+  document.getElementById('sc').classList.add('open'); syncLegendVisibility(); closePanelMobile();
 }
 document.getElementById('scX').addEventListener('click', () => {
   document.getElementById('sc').classList.remove('open'); syncLegendVisibility();
@@ -1617,6 +1867,210 @@ botLog.addEventListener('click', e=>{
   const lat=+card.dataset.lat, lon=+card.dataset.lon;
   if (view!=='proj') setView('proj');
   map.flyTo([lat,lon], 15);
+});
+
+// ---- Demographics (DOSM district-level choropleth) ----
+const DEM_COLORS = ['#d7e8e3','#9cc9bd','#5ba392','#2e7364','#174a40'];
+const ETH_LABELS = {bumi_malay:'Bumiputera (Malay)',bumi_other:'Bumiputera (Other)',chinese:'Chinese',indian:'Indian',other_citizen:'Other citizens',other_noncitizen:'Non-citizens'};
+let DEMDATA = null, demLayer = null, demActive = false, demSelected = null, demBreaks = [];
+
+function demColor(val){
+  for(let i=0;i<demBreaks.length;i++) if(val<=demBreaks[i]) return DEM_COLORS[i];
+  return DEM_COLORS[DEM_COLORS.length-1];
+}
+function fmtPop(n){ return n>=1000?(n/1000).toFixed(2)+'M':n.toFixed(1)+'k'; }
+function fmtRMdem(n){ return 'RM '+Number(n).toLocaleString(); }
+
+let DEM_YEAR_MIN=2019, DEM_YEAR_MAX=2025;
+function demSparkSVG(pairs, color){
+  if(!pairs||pairs.length<2) return '';
+  const vals=pairs.map(p=>p[1]), mn=Math.min(...vals), mx=Math.max(...vals);
+  const W=308, H=34, P=2;
+  const span = DEM_YEAR_MAX - DEM_YEAR_MIN || 1;
+  const sx = yr => P + ((yr - DEM_YEAR_MIN) / span) * (W - P*2);
+  const sy = v => P + (1-(mx===mn?0.5:(v-mn)/(mx-mn)))*(H-P*2);
+  const pts = pairs.map(p=>`${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(' ');
+  return `<svg class="dem-spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <text x="${P}" y="${H}" font-size="9" fill="rgba(27,42,36,.5)">${DEM_YEAR_MIN}</text>
+    <text x="${W-P}" y="${H}" font-size="9" fill="rgba(27,42,36,.5)" text-anchor="end">${DEM_YEAR_MAX}</text>
+  </svg>`;
+}
+
+function showDemPanel(feature){
+  document.getElementById('rtReport').classList.remove('open'); syncLegendVisibility();
+  const s=feature.properties.stats, name=feature.properties.shapeName;
+  document.getElementById('demName').textContent=name;
+  document.getElementById('demState').textContent=s.state||'';
+  const tot=s.total||1;
+  const firstTrend=s.trend&&s.trend.length?s.trend[0]:null;
+  const growthPct=firstTrend?((tot-firstTrend[1])/firstTrend[1]*100).toFixed(1):null;
+  const growthHTML=growthPct!=null?` &middot; <b style="color:${+growthPct>=0?'#2e7364':'#c0392b'}">${+growthPct>=0?'+':''}${growthPct}%</b> since ${firstTrend[0]}`:'';
+  const malePct=tot?Math.round(s.male/tot*100):0;
+  const femalePct=tot?Math.round(s.female/tot*100):0;
+  const ethEntries=Object.entries(ETH_LABELS)
+    .map(([k,label])=>({label,val:s.ethnicity?.[k]||0}))
+    .filter(e=>e.val>0).sort((a,b)=>b.val-a.val);
+  const ethMax=ethEntries.length?ethEntries[0].val:1;
+  const ethHTML=ethEntries.map(e=>{
+    const pct=tot>0?(e.val/tot*100).toFixed(1):'0';
+    const bw=(e.val/ethMax*100).toFixed(1);
+    return `<div class="dem-eth-row"><span class="dem-eth-label">${e.label}</span>
+      <div class="dem-eth-wrap"><div class="dem-eth-bar" style="width:${bw}%"></div></div>
+      <span class="dem-eth-pct">${pct}%</span></div>`;
+  }).join('');
+  document.getElementById('demBody').innerHTML=`
+    <div class="dem-section">
+      <div class="dem-slabel">Population (${s.trend&&s.trend.length?s.trend[s.trend.length-1][0]:'2025'})</div>
+      <div class="dem-big">${fmtPop(tot)}</div>
+      <div class="dem-sub">${malePct}% male &middot; ${femalePct}% female${growthHTML}</div>
+      ${demSparkSVG(s.trend,'#5ba392')}
+    </div>
+    <hr class="dem-divider">
+    <div class="dem-section">
+      <div class="dem-slabel">Household income (${s.income_year||'2024'})</div>
+      <div class="dem-stat"><span class="key">Median</span><span class="val">${fmtRMdem(s.income_median)}/mo</span></div>
+      <div class="dem-stat"><span class="key">Mean</span><span class="val">${fmtRMdem(s.income_mean)}/mo</span></div>
+      ${demSparkSVG(s.income_trend,'#2e7364')}
+    </div>
+    <hr class="dem-divider">
+    <div class="dem-section">
+      <div class="dem-slabel">Poverty</div>
+      <div class="dem-stat"><span class="key">Absolute poverty rate</span><span class="val">${s.poverty_absolute.toFixed(1)}%</span></div>
+      <div class="dem-stat"><span class="key">Relative poverty rate</span><span class="val">${s.poverty_relative.toFixed(1)}%</span></div>
+    </div>
+    <hr class="dem-divider">
+    <div class="dem-section">
+      <div class="dem-slabel">Ethnicity breakdown</div>
+      ${ethHTML}
+    </div>`;
+  document.getElementById('demCard').style.display='block'; closePanelMobile();
+}
+
+function closeDemPanel(){
+  document.getElementById('demCard').style.display='none';
+  if(demSelected){demLayer&&demLayer.resetStyle(demSelected);demSelected=null;}
+}
+
+function buildDemLayer(){
+  if(!DEMDATA||demLayer) return;
+  const pops=DEMDATA.features.map(f=>f.properties.stats.total).sort((a,b)=>a-b);
+  const q=p=>pops[Math.min(pops.length-1,Math.floor(p*pops.length))];
+  demBreaks=[q(0.2),q(0.4),q(0.6),q(0.8)];
+  map.createPane('demPane');
+  map.getPane('demPane').style.zIndex=380;
+  demLayer=L.geoJSON(DEMDATA,{
+    pane:'demPane',
+    style:f=>({fillColor:demColor(f.properties.stats.total),fillOpacity:0.55,color:'#fff',weight:0.8,opacity:0.6}),
+    onEachFeature:(f,ly)=>{
+      ly.on({
+        mouseover:e=>{
+          if(e.target!==demSelected) e.target.setStyle({weight:2,color:'#2e7364',fillOpacity:0.72});
+          e.target.bringToFront();
+          const s=f.properties.stats;
+          e.target.bindTooltip(`<b>${f.properties.shapeName}</b><br>${s.state} &middot; ${fmtPop(s.total)} &middot; ${fmtRMdem(s.income_median)}/mo`,
+            {sticky:true,direction:'auto',offset:[0,-4]}).openTooltip(e.latlng);
+        },
+        mouseout:e=>{ if(e.target!==demSelected) demLayer.resetStyle(e.target); e.target.closeTooltip(); },
+        click:e=>{
+          L.DomEvent.stopPropagation(e);
+          if(demSelected) demLayer.resetStyle(demSelected);
+          demSelected=e.target;
+          demSelected.setStyle({weight:2.5,color:'#143C2B',fillOpacity:0.78});
+          showDemPanel(f);
+        }
+      });
+    }
+  });
+}
+
+function toggleDem(){
+  if(!DEMDATA) return;
+  demActive=!demActive;
+  const btn=document.getElementById('demToggle');
+  const leg=document.getElementById('demLegend');
+  if(demActive){
+    buildDemLayer();
+    demLayer.addTo(map);
+    btn.classList.add('on');
+    leg.style.display='block';
+  } else {
+    closeDemPanel();
+    if(demLayer) map.removeLayer(demLayer);
+    demSelected=null;
+    btn.classList.remove('on');
+    leg.style.display='none';
+  }
+}
+
+// Close dem panel when clicking on the map outside any district
+map.on('click', ()=>{ if(demActive && document.getElementById('demCard').style.display==='block') closeDemPanel(); });
+
+fetch('data.json')
+  .then(r=>r.json())
+  .then(data=>{
+    DEMDATA=data;
+    const allYrs=data.features.flatMap(f=>[...(f.properties.stats.trend||[]),...(f.properties.stats.income_trend||[])].map(p=>p[0]));
+    if(allYrs.length){DEM_YEAR_MIN=Math.min(...allYrs);DEM_YEAR_MAX=Math.max(...allYrs);}
+    const btn=document.getElementById('demToggle');
+    btn.disabled=false;
+    btn.textContent='Population density';
+  })
+  .catch(()=>{
+    const btn=document.getElementById('demToggle');
+    btn.disabled=true;
+    btn.textContent='Data unavailable';
+  });
+
+document.getElementById('demToggle').addEventListener('click',toggleDem);
+document.getElementById('demX').addEventListener('click',closeDemPanel);
+
+// ---------- Amenity layers ----------
+const AM_TYPES = [
+  {id:'schools',      color:'#4D96E8', togId:'togSchools'},
+  {id:'supermarkets', color:'#3DB87A', togId:'togSupermarkets'},
+  {id:'hospitals',    color:'#E85252', togId:'togHospitals'},
+  {id:'malls',        color:'#9B6DD4', togId:'togMalls'},
+];
+const amGroups = {};
+AM_TYPES.forEach(t => {
+  amGroups[t.id] = L.markerClusterGroup({
+    chunkedLoading:true, maxClusterRadius:50, animate:true,
+    iconCreateFunction: c => {
+      const n = c.getChildCount(), s = n >= 100 ? 34 : n >= 20 ? 30 : 26;
+      return L.divIcon({html:`<div class="am-cluster" style="width:${s}px;height:${s}px;background:${t.color}">${n>=1000?(n/1000).toFixed(1)+'k':n}</div>`,className:'',iconSize:[s,s]});
+    }
+  });
+});
+
+fetch('amenities.json')
+  .then(r => r.json())
+  .then(items => {
+    const byType = {};
+    AM_TYPES.forEach(t => { byType[t.id] = []; });
+    items.forEach(item => {
+      const t = AM_TYPES.find(x => x.id === item.t);
+      if (!t) return;
+      const m = L.marker([item.lat, item.lon], {
+        icon: L.divIcon({className:'', iconSize:[12,12], iconAnchor:[6,6],
+          html:`<div class="am-dot" style="width:12px;height:12px;background:${t.color}"></div>`})
+      });
+      if (item.n) m.bindPopup(
+        `<div class="pop" style="width:190px;padding:10px 12px"><b style="font-size:13px">${item.n}</b><div style="font-size:11px;color:var(--ink-soft);margin-top:3px;text-transform:capitalize">${t.id.replace('supermarkets','Supermarket').replace('schools','School').replace('hospitals','Hospital / Clinic').replace('malls','Shopping Mall')}</div></div>`,
+        {maxWidth:210});
+      byType[item.t].push(m);
+    });
+    AM_TYPES.forEach(t => { if (byType[t.id].length) amGroups[t.id].addLayers(byType[t.id]); });
+    const c = byType;
+    document.getElementById('amenHint').textContent =
+      `${(c.schools||[]).length.toLocaleString()} schools · ${(c.supermarkets||[]).length.toLocaleString()} supermarkets · ${(c.hospitals||[]).length.toLocaleString()} hospitals · ${(c.malls||[]).length} malls`;
+  })
+  .catch(e => { console.error('amenities.json load failed:', e); document.getElementById('amenHint').textContent = 'Amenity data unavailable.'; });
+
+AM_TYPES.forEach(t => {
+  document.getElementById(t.togId).addEventListener('change', e => {
+    e.target.checked ? map.addLayer(amGroups[t.id]) : map.removeLayer(amGroups[t.id]);
+  });
 });
 
 apply();

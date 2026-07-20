@@ -1,0 +1,56 @@
+name: TEDUH crawler (4x daily)
+
+on:
+  schedule:
+    # 4 runs per day at 01, 07, 13, 19 UTC (09:00 / 15:00 / 21:00 / 03:00 MYT)
+    # Batch number is derived from the hour: 1→0, 7→1, 13→2, 19→3
+    - cron: '0 1 * * *'
+    - cron: '0 7 * * *'
+    - cron: '0 13 * * *'
+    - cron: '0 19 * * *'
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: 'Override batch number (0–3). Leave blank to auto-detect from hour.'
+        required: false
+        default: ''
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Determine batch number
+        id: batch
+        run: |
+          if [ -n "${{ github.event.inputs.batch }}" ]; then
+            BATCH="${{ github.event.inputs.batch }}"
+          else
+            BATCH=$(( $(date -u +%-H) / 6 ))
+          fi
+          echo "BATCH=$BATCH" >> $GITHUB_OUTPUT
+          echo "Running batch $BATCH of 4"
+
+      # Listing refresh runs once per day on batch 0 to pick up new projects.
+      # Skipped on batches 1–3 to save time and API load.
+      - name: Refresh project listing (batch 0 only)
+        if: steps.batch.outputs.BATCH == '0'
+        run: python3 fetch_teduh.py
+
+      - name: Run TEDUH detail crawler
+        run: python3 fetch_teduh_daily.py --batch ${{ steps.batch.outputs.BATCH }} --of 4
+
+      - name: Commit and push updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add teduh_projects.json teduh_history.json
+          git diff --cached --quiet || git commit -m "TEDUH crawl batch ${{ steps.batch.outputs.BATCH }}/4: $(date -u +%Y-%m-%dT%H:00Z)"
+          git push
