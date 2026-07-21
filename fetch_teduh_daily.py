@@ -13,9 +13,14 @@ Also appends a lean hourly snapshot (id, takeup per unit type, timestamp) to
 teduh_history.json so sales momentum can be computed once 2+ data points exist.
 
 Batch mode (--batch N --of M):
-  Always crawls all active projects (Lancar/Lewat/Sakit) for maximum freshness.
-  Rotates through the rest in M equal batches — run M times per day to achieve
-  full coverage every 24 hours while keeping each individual run short.
+  Crawls only active projects (Lancar/Lewat/Sakit, ~2,948 projects).
+  Completed projects (Siap Dengan CCC/CFO) have settled take-up and don't
+  need 4x-daily tracking. Active-only runs finish in ~35 minutes, well within
+  the 75-minute GitHub Actions timeout.
+  --batch is passed for the commit message; --of is retained for CLI compat.
+
+Full mode (--of 1, run manually):
+  Crawls all projects (24k+). Use locally or on a one-off basis.
 
 Designed to run via GitHub Actions (see .github/workflows/teduh-daily.yml).
 """
@@ -106,17 +111,13 @@ projects = base_data["projects"]
 print(f"  {len(projects)} projects total")
 
 # Build the crawl list for this run.
-# Active projects are always included for maximum take-up freshness.
-# The remainder is split into num_batches rotating slices.
+# Scheduled runs (--of > 1): active projects only. Completed projects have settled
+# take-up rates and crawling 24k+ projects per run exceeds the 75-min CI timeout.
+# Manual full crawl (--of 1): all projects.
 if args.num_batches > 1:
-    priority = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
-    priority_ids = {p["id"] for p in priority}
-    others = [p for p in projects if p["id"] not in priority_ids]
-    batch_others = [p for i, p in enumerate(others) if i % args.num_batches == args.batch]
-    projects_to_crawl = priority + batch_others
+    projects_to_crawl = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
     print(f"  Batch {args.batch}/{args.num_batches}: "
-          f"{len(priority)} priority (active) + {len(batch_others)} batch = "
-          f"{len(projects_to_crawl)} to crawl")
+          f"{len(projects_to_crawl)} active projects (Lancar/Lewat/Sakit)")
 else:
     projects_to_crawl = projects
     print(f"  Full crawl: {len(projects_to_crawl)} projects")
