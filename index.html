@@ -1874,6 +1874,59 @@ const DEM_COLORS = ['#d7e8e3','#9cc9bd','#5ba392','#2e7364','#174a40'];
 const ETH_LABELS = {bumi_malay:'Bumiputera (Malay)',bumi_other:'Bumiputera (Other)',chinese:'Chinese',indian:'Indian',other_citizen:'Other citizens',other_noncitizen:'Non-citizens'};
 let DEMDATA = null, demLayer = null, demActive = false, demSelected = null, demBreaks = [];
 
+// ---- Take-up history (from TEDUH crawler hourly snapshots) ----
+let TUHISTORY = {};   // { teduh_project_id: [{date, pct}] }
+fetch('teduh_history.json')
+  .then(r => r.json())
+  .then(data => {
+    const byId = {};
+    for (const snap of (data.snapshots || [])) {
+      for (const [pid, types] of Object.entries(snap.projects || {})) {
+        if (!byId[pid]) byId[pid] = [];
+        // Average take-up across all unit types in this snapshot
+        const vals = Object.values(types).filter(v => v !== null && v !== undefined);
+        if (vals.length) byId[pid].push({ date: snap.date, pct: vals.reduce((s,v)=>s+v,0)/vals.length });
+      }
+    }
+    TUHISTORY = byId;
+  })
+  .catch(() => {}); // no history yet — silently skip
+
+// ---- Point-in-polygon helpers for district liquidity analysis ----
+function pointInRing(lat, lon, ring) {
+  // ring is GeoJSON format: [[lon, lat], ...]
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const xi = ring[i][0], yi = ring[i][1];
+    const xj = ring[j][0], yj = ring[j][1];
+    if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+  }
+  return inside;
+}
+
+function projectsInFeature(feature) {
+  const geom = feature.geometry;
+  if (!geom) return [];
+  const rings = geom.type === 'Polygon' ? [geom.coordinates[0]]
+              : geom.type === 'MultiPolygon' ? geom.coordinates.map(p => p[0]) : [];
+  if (!rings.length) return [];
+  // Build bounding box for fast pre-filter
+  let lonMin = Infinity, lonMax = -Infinity, latMin = Infinity, latMax = -Infinity;
+  for (const ring of rings) {
+    for (const [lo, la] of ring) {
+      if (lo < lonMin) lonMin = lo; if (lo > lonMax) lonMax = lo;
+      if (la < latMin) latMin = la; if (la > latMax) latMax = la;
+    }
+  }
+  return DATA.filter(d => {
+    const lat = d[1], lon = d[2];
+    if (!lat || !lon) return false;
+    if (lat < latMin || lat > latMax || lon < lonMin || lon > lonMax) return false;
+    if (geom.type === 'Polygon') return pointInRing(lat, lon, geom.coordinates[0]);
+    return geom.coordinates.some(p => pointInRing(lat, lon, p[0]));
+  });
+}
+
 function demColor(val){
   for(let i=0;i<demBreaks.length;i++) if(val<=demBreaks[i]) return DEM_COLORS[i];
   return DEM_COLORS[DEM_COLORS.length-1];
@@ -1895,6 +1948,66 @@ function demSparkSVG(pairs, color){
     <text x="${P}" y="${H}" font-size="9" fill="rgba(27,42,36,.5)">${DEM_YEAR_MIN}</text>
     <text x="${W-P}" y="${H}" font-size="9" fill="rgba(27,42,36,.5)" text-anchor="end">${DEM_YEAR_MAX}</text>
   </svg>`;
+}
+
+function districtPropertyHTML(feature) {
+  const projs = projectsInFeature(feature);
+  if (projs.length === 0) {
+    return `<div class="dem-section">
+      <div class="dem-slabel">Property launches (2021–2025)</div>
+      <div class="dem-sub" style="margin-top:4px">No new launches recorded in this district.</div>
+    </div>`;
+  }
+  const withUnits = projs.filter(d => d[8] > 0);
+  const totalUnits = withUnits.reduce((s, d) => s + d[8], 0);
+  const totalSold  = withUnits.reduce((s, d) => s + Math.min(d[9], d[8]), 0);
+  const aggTU = totalUnits > 0 ? Math.round(totalSold / totalUnits * 100) : null;
+  const prices = projs.map(d => d[6]).filter(Boolean).sort((a, b) => a - b);
+  const medP = prices.length ? prices[Math.floor(prices.length / 2)] : 0;
+  const landed = projs.filter(d => d[4] === 1).length;
+  const highrise = projs.length - landed;
+  const landedPct = Math.round(landed / projs.length * 100);
+  const tuColor = aggTU >= 60 ? '#2A9D8F' : aggTU >= 40 ? '#D9A23B' : '#E76F51';
+  const tuLabel = aggTU >= 60 ? 'Strong absorption' : aggTU >= 40 ? 'Moderate absorption' : 'Slow absorption';
+
+  // Price tier breakdown
+  const tiers = [{label:'Under RM300k',n:0},{label:'RM300k–600k',n:0},{label:'RM600k–1M',n:0},{label:'Above RM1M',n:0}];
+  for (const d of projs) {
+    const p = d[6]; if (!p) continue;
+    if (p < 300000) tiers[0].n++;
+    else if (p < 600000) tiers[1].n++;
+    else if (p < 1000000) tiers[2].n++;
+    else tiers[3].n++;
+  }
+  const tierMax = Math.max(...tiers.map(t => t.n), 1);
+  const tierHTML = tiers.filter(t => t.n > 0).map(t => `
+    <div class="dem-eth-row">
+      <span class="dem-eth-label" style="width:120px">${t.label}</span>
+      <div class="dem-eth-wrap"><div class="dem-eth-bar" style="width:${(t.n/tierMax*100).toFixed(1)}%;background:#D9A23B"></div></div>
+      <span class="dem-eth-pct">${t.n}</span>
+    </div>`).join('');
+
+  return `<div class="dem-section">
+    <div class="dem-slabel">Property launches (2021–2025)</div>
+    <div class="dem-stat"><span class="key">Projects</span><span class="val">${projs.length}</span></div>
+    <div class="dem-stat"><span class="key">Total units</span><span class="val">${totalUnits.toLocaleString()}</span></div>
+    <div class="dem-stat"><span class="key">Median launch price</span><span class="val">${medP ? fmtRM(medP) : '—'}</span></div>
+    <div class="dem-stat" style="margin-bottom:10px"><span class="key">Type mix</span><span class="val">${landed} landed · ${highrise} high-rise</span></div>
+    <div class="splitbar">
+      <i style="width:${landedPct}%;background:var(--ink-soft)"></i>
+      <i style="flex:1;background:var(--line)"></i>
+    </div>
+    <div class="splitlbl"><span>Landed ${landedPct}%</span><span>High-rise ${100-landedPct}%</span></div>
+    ${aggTU !== null ? `
+    <div class="dem-slabel" style="margin-top:12px">Liquidity · aggregate take-up</div>
+    <div class="bar"><i style="width:${aggTU}%;background:${tuColor}"></i></div>
+    <div class="soldline">
+      <span>${totalSold.toLocaleString()} of ${totalUnits.toLocaleString()} units sold · ${tuLabel}</span>
+      <span><b>${aggTU}%</b></span>
+    </div>` : ''}
+    <div class="dem-slabel" style="margin-top:12px">Price tier breakdown</div>
+    ${tierHTML}
+  </div>`;
 }
 
 function showDemPanel(feature){
@@ -1943,7 +2056,9 @@ function showDemPanel(feature){
     <div class="dem-section">
       <div class="dem-slabel">Ethnicity breakdown</div>
       ${ethHTML}
-    </div>`;
+    </div>
+    <hr class="dem-divider">
+    ${districtPropertyHTML(feature)}`;
   document.getElementById('demCard').style.display='block'; closePanelMobile();
 }
 
