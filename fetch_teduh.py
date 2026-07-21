@@ -59,11 +59,20 @@ HEADERS = {
 BASE = "https://teduh.kpkt.gov.my/api/projek-swasta"
 
 
-def fetch_page(page):
+def fetch_page(page, max_retries=3):
     url = f"{BASE}?page={page}&per_page=100&q=&search_type=projek"
-    req = urllib.request.Request(url, headers=HEADERS)
-    resp = urllib.request.urlopen(req, timeout=30)
-    return json.loads(resp.read())
+    for attempt in range(max_retries):
+        try:
+            req = urllib.request.Request(url, headers=HEADERS)
+            resp = urllib.request.urlopen(req, timeout=60)
+            return json.loads(resp.read())
+        except Exception as e:
+            if attempt < max_retries - 1:
+                wait = 5 + attempt * 5
+                print(f"  page {page} attempt {attempt+1} failed ({e}) — retrying in {wait}s")
+                time.sleep(wait)
+            else:
+                raise
 
 
 def clean(p):

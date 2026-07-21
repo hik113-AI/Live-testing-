@@ -40,8 +40,11 @@ jobs:
 
       # Listing refresh runs once per day on batch 0 to pick up new projects.
       # Skipped on batches 1–3 to save time and API load.
+      # continue-on-error so a transient TEDUH API timeout doesn't kill the
+      # detail crawl — the detail step will use the existing teduh_projects.json.
       - name: Refresh project listing (batch 0 only)
         if: steps.batch.outputs.BATCH == '0'
+        continue-on-error: true
         run: python3 fetch_teduh.py
 
       - name: Run TEDUH detail crawler
