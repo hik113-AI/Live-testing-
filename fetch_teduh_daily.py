@@ -13,10 +13,9 @@ Also appends a lean hourly snapshot (id, takeup per unit type, timestamp) to
 teduh_history.json so sales momentum can be computed once 2+ data points exist.
 
 Batch mode (--batch N --of M):
-  Crawls only active projects (Lancar/Lewat/Sakit, ~2,948 projects).
-  Completed projects (Siap Dengan CCC/CFO) have settled take-up and don't
-  need 4x-daily tracking. With 8s timeout, 2 retries, and no retry pass,
-  runs finish in ~30 minutes, well within the 45-minute GitHub Actions timeout.
+  Splits active projects (Lancar/Lewat/Sakit, ~2,948) evenly across batches.
+  With 4 batches: ~737 projects per run at 8s timeout, 2 retries, 0.2s sleep.
+  Each active project refreshed once per day; runs complete in ~10-15 minutes.
   --batch is passed for the commit message; --of is retained for CLI compat.
 
 Full mode (--of 1, run manually):
@@ -111,13 +110,17 @@ projects = base_data["projects"]
 print(f"  {len(projects)} projects total")
 
 # Build the crawl list for this run.
-# Scheduled runs (--of > 1): active projects only. Completed projects have settled
-# take-up rates and crawling 24k+ projects per run exceeds the 75-min CI timeout.
+# Scheduled runs (--of > 1): split active projects evenly across batches.
+# ~2,948 active projects ÷ 4 batches = ~737 per run, ~10-15 min per run.
+# Each active project is refreshed once per day across the 4 runs.
 # Manual full crawl (--of 1): all projects.
 if args.num_batches > 1:
-    projects_to_crawl = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
+    active = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
+    batch_size = (len(active) + args.num_batches - 1) // args.num_batches
+    start = args.batch * batch_size
+    projects_to_crawl = active[start:start + batch_size]
     print(f"  Batch {args.batch}/{args.num_batches}: "
-          f"{len(projects_to_crawl)} active projects (Lancar/Lewat/Sakit)")
+          f"{len(projects_to_crawl)} active projects (#{start}–{start+len(projects_to_crawl)-1} of {len(active)})")
 else:
     projects_to_crawl = projects
     print(f"  Full crawl: {len(projects_to_crawl)} projects")
@@ -159,7 +162,7 @@ for i, p in enumerate(projects_to_crawl):
         print(f"  {i+1}/{len(projects_to_crawl)} | enriched={enriched} failed={failed} "
               f"no_price={no_price_data} | ~{remaining/60:.1f} min remaining")
 
-    time.sleep(0.4)
+    time.sleep(0.2)
 
 if failed_ids:
     print(f"  {len(failed_ids)} projects failed — will be retried next crawl run")
