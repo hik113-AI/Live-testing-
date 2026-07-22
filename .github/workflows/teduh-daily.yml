@@ -45,6 +45,7 @@ jobs:
       - name: Refresh project listing (batch 0 only)
         if: steps.batch.outputs.BATCH == '0'
         continue-on-error: true
+        timeout-minutes: 8
         run: python3 fetch_teduh.py
 
       - name: Run TEDUH detail crawler

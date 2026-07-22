@@ -116,7 +116,9 @@ print(f"  {len(projects)} projects total")
 # Manual full crawl (--of 1): all projects.
 if args.num_batches > 1:
     active = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
-    batch_size = (len(active) + args.num_batches - 1) // args.num_batches
+    # Cap at 500 per batch — TEDUH API averages ~3.5s/call from GitHub's US servers,
+    # so 500 × 3.7s = ~31 min, fitting safely within the 45-min workflow cap.
+    batch_size = min((len(active) + args.num_batches - 1) // args.num_batches, 500)
     start = args.batch * batch_size
     projects_to_crawl = active[start:start + batch_size]
     print(f"  Batch {args.batch}/{args.num_batches}: "
