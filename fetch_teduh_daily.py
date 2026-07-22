@@ -26,6 +26,7 @@ Designed to run via GitHub Actions (see .github/workflows/teduh-daily.yml).
 import argparse
 import json
 import math
+import random
 import time
 import urllib.request
 import urllib.error
@@ -117,8 +118,12 @@ if args.num_batches > 1:
     projects_to_crawl = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
     print(f"  {len(projects_to_crawl)} active projects (Lancar/Lewat/Sakit)")
 else:
-    projects_to_crawl = projects
+    projects_to_crawl = list(projects)
     print(f"  Full crawl: {len(projects_to_crawl)} projects")
+
+# Shuffle so each run hits project IDs in a different order — avoids a
+# predictable sequential scan pattern that WAFs sometimes flag.
+random.shuffle(projects_to_crawl)
 
 enriched = 0
 failed = 0
