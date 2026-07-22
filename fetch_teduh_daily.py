@@ -13,10 +13,10 @@ Also appends a lean hourly snapshot (id, takeup per unit type, timestamp) to
 teduh_history.json so sales momentum can be computed once 2+ data points exist.
 
 Batch mode (--batch N --of M):
-  Splits active projects (Lancar/Lewat/Sakit, ~2,948) evenly across batches.
-  With 4 batches: ~737 projects per run at 8s timeout, 2 retries, 0.2s sleep.
-  Each active project refreshed once per day; runs complete in ~10-15 minutes.
-  --batch is passed for the commit message; --of is retained for CLI compat.
+  Crawls ALL active projects (Lancar/Lewat/Sakit, ~2,948) using MAX_WORKERS=5
+  parallel HTTP workers. 5 workers × ~3.5s avg API latency from GitHub's US
+  servers = ~35 min per run. Every project refreshed 4x daily; scales as
+  project count grows. --batch is for the commit message only; --of for CLI compat.
 
 Full mode (--of 1, run manually):
   Crawls all projects (24k+). Use locally or on a one-off basis.
@@ -28,6 +28,7 @@ import json
 import time
 import urllib.request
 import urllib.error
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone
 
 parser = argparse.ArgumentParser()
@@ -38,6 +39,7 @@ parser.add_argument('--of', type=int, default=1, dest='num_batches',
 args = parser.parse_args()
 
 ACTIVE_STATUSES = {"Lancar", "Lewat", "Sakit"}
+MAX_WORKERS = 5  # parallel HTTP workers — TEDUH API averages ~3.5s/call from GitHub servers
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120",
@@ -109,26 +111,20 @@ with open("teduh_projects.json") as f:
 projects = base_data["projects"]
 print(f"  {len(projects)} projects total")
 
-# Build the crawl list for this run.
-# Scheduled runs (--of > 1): split active projects evenly across batches.
-# ~2,948 active projects ÷ 4 batches = ~737 per run, ~10-15 min per run.
-# Each active project is refreshed once per day across the 4 runs.
-# Manual full crawl (--of 1): all projects.
+# Scheduled runs (--of > 1): all active projects, parallelised across MAX_WORKERS.
+# 5 workers × ~3.5s avg API latency = ~35 min for 2,948 projects, within 60-min cap.
+# Every project refreshed 4x daily regardless of how many there are.
+# Manual full crawl (--of 1): all projects including completed ones.
 if args.num_batches > 1:
-    active = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
-    batch_size = (len(active) + args.num_batches - 1) // args.num_batches
-    start = args.batch * batch_size
-    projects_to_crawl = active[start:start + batch_size]
-    print(f"  Batch {args.batch}/{args.num_batches}: "
-          f"{len(projects_to_crawl)} active projects (#{start}–{start+len(projects_to_crawl)-1} of {len(active)})")
+    projects_to_crawl = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
+    print(f"  {len(projects_to_crawl)} active projects — {MAX_WORKERS} parallel workers")
 else:
     projects_to_crawl = projects
-    print(f"  Full crawl: {len(projects_to_crawl)} projects")
+    print(f"  Full crawl: {len(projects_to_crawl)} projects — {MAX_WORKERS} parallel workers")
 
 enriched = 0
 failed = 0
 no_price_data = 0
-failed_ids = []
 t0 = time.time()
 
 # Hourly snapshot for the momentum log — deduped by timestamp so multiple
@@ -136,36 +132,42 @@ t0 = time.time()
 ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:00Z")
 snapshot = {"date": ts, "projects": {}}
 
-for i, p in enumerate(projects_to_crawl):
+
+def crawl_one(p):
     pid = p.get("id")
     if not pid:
-        continue
+        return p, None, None
     raw = fetch_detail(pid)
-    detail = extract_detail(raw)
-    if detail is None:
-        failed += 1
-        failed_ids.append(pid)
-    else:
-        p["detail"] = detail
-        if detail["unit_types"]:
-            enriched += 1
-            snapshot["projects"][pid] = {
-                t["type"]: t["takeup_pct"] for t in detail["unit_types"] if t.get("type")
-            }
+    return p, pid, extract_detail(raw)
+
+
+with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+    futures = {executor.submit(crawl_one, p): p for p in projects_to_crawl}
+    for i, future in enumerate(as_completed(futures)):
+        p, pid, detail = future.result()
+        if detail is None:
+            failed += 1
         else:
-            no_price_data += 1
+            p["detail"] = detail
+            if detail["unit_types"]:
+                enriched += 1
+                if pid:
+                    snapshot["projects"][pid] = {
+                        ut["type"]: ut["takeup_pct"]
+                        for ut in detail["unit_types"] if ut.get("type")
+                    }
+            else:
+                no_price_data += 1
 
-    if (i + 1) % 200 == 0:
-        elapsed = time.time() - t0
-        rate = (i + 1) / elapsed
-        remaining = (len(projects_to_crawl) - i - 1) / rate
-        print(f"  {i+1}/{len(projects_to_crawl)} | enriched={enriched} failed={failed} "
-              f"no_price={no_price_data} | ~{remaining/60:.1f} min remaining")
+        if (i + 1) % 200 == 0:
+            elapsed = time.time() - t0
+            rate = (i + 1) / elapsed
+            remaining = (len(projects_to_crawl) - i - 1) / rate
+            print(f"  {i+1}/{len(projects_to_crawl)} | enriched={enriched} failed={failed} "
+                  f"no_price={no_price_data} | ~{remaining/60:.1f} min remaining")
 
-    time.sleep(0.2)
-
-if failed_ids:
-    print(f"  {len(failed_ids)} projects failed — will be retried next crawl run")
+if failed:
+    print(f"  {failed} projects failed — will pick up next run")
 
 print(f"\n=== DONE ===")
 print(f"Crawled: {len(projects_to_crawl)} | Enriched: {enriched} | "
