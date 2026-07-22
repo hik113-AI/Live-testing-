@@ -679,7 +679,7 @@
 
 <div class="botwin" id="botWin" role="dialog" aria-label="Ask AI about projects">
   <button class="bot-head" id="botHead" aria-expanded="false" aria-controls="botBody">
-    <div><h3>Project Assistant</h3><div class="bh-sub">Search 2,800+ launches by asking</div></div>
+    <div><h3>Project Assistant</h3><div class="bh-sub" id="bhSub">Search … launches by asking</div></div>
     <svg class="bot-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 14 6-6 6 6"/></svg>
   </button>
   <div id="botBody" class="bot-body">
@@ -706,7 +706,7 @@
       <p>Absorption analytics for serious decisions</p></div>
     <div class="pw-body">
       <ul>
-        <li>Take-up rates on all 2,800+ projects</li>
+        <li id="pwCount">Take-up rates on all … projects</li>
         <li>State-level absorption & price-mix analytics</li>
         <li>Heatmap by take-up and median price</li>
         <li>Top-developer league tables</li>
@@ -2226,6 +2226,10 @@ document.getElementById('nlabel').textContent = 'loading';
       return;
     }
   }
+
+  const n = DATA.length.toLocaleString();
+  document.getElementById('bhSub').textContent = `Search ${n}+ launches by asking`;
+  document.getElementById('pwCount').textContent = `Take-up rates on all ${n}+ projects`;
 
   buildMarkers();
   apply();
