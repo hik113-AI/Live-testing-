@@ -15,8 +15,8 @@ teduh_history.json so sales momentum can be computed once 2+ data points exist.
 Batch mode (--batch N --of M):
   Crawls only active projects (Lancar/Lewat/Sakit, ~2,948 projects).
   Completed projects (Siap Dengan CCC/CFO) have settled take-up and don't
-  need 4x-daily tracking. Active-only runs finish in ~35 minutes, well within
-  the 75-minute GitHub Actions timeout.
+  need 4x-daily tracking. With 8s timeout, 2 retries, and no retry pass,
+  runs finish in ~30 minutes, well within the 45-minute GitHub Actions timeout.
   --batch is passed for the commit message; --of is retained for CLI compat.
 
 Full mode (--of 1, run manually):
@@ -48,12 +48,12 @@ HEADERS = {
 BASE = "https://teduh.kpkt.gov.my/api/projek-swasta/"
 
 
-def fetch_detail(project_id, max_retries=4):
+def fetch_detail(project_id, max_retries=2):
     url = BASE + project_id
     for attempt in range(max_retries):
         req = urllib.request.Request(url, headers=HEADERS)
         try:
-            resp = urllib.request.urlopen(req, timeout=25)
+            resp = urllib.request.urlopen(req, timeout=8)
             return json.loads(resp.read())
         except urllib.error.HTTPError as e:
             if e.code in (429, 503, 502, 504) and attempt < max_retries - 1:
@@ -162,27 +162,7 @@ for i, p in enumerate(projects_to_crawl):
     time.sleep(0.4)
 
 if failed_ids:
-    print(f"\nRetry pass: {len(failed_ids)} failed IDs...")
-    still_failed = []
-    id_to_project = {p["id"]: p for p in projects}
-    for j, pid in enumerate(failed_ids):
-        time.sleep(0.6)
-        raw = fetch_detail(pid, max_retries=5)
-        detail = extract_detail(raw)
-        if detail is None:
-            still_failed.append(pid)
-        else:
-            id_to_project[pid]["detail"] = detail
-            enriched += 1
-            failed -= 1
-            if detail["unit_types"]:
-                snapshot["projects"][pid] = {
-                    t["type"]: t["takeup_pct"] for t in detail["unit_types"] if t.get("type")
-                }
-        if (j + 1) % 100 == 0:
-            print(f"  retry {j+1}/{len(failed_ids)}")
-    print(f"Retry done. Still failed: {len(still_failed)}")
-    failed = len(still_failed)
+    print(f"  {len(failed_ids)} projects failed — will be retried next crawl run")
 
 print(f"\n=== DONE ===")
 print(f"Crawled: {len(projects_to_crawl)} | Enriched: {enriched} | "
