@@ -1,5 +1,5 @@
 """
-fetch_teduh_deep.py — scheduled deep crawler for TEDUH project details.
+fetch_teduh_daily.py — scheduled detail crawler for TEDUH housing projects.
 
 Extracts per project:
   - unit_types: type, floors, bedrooms, bathrooms, area, units, price_min,
@@ -9,22 +9,23 @@ Extracts per project:
   - brochure_url
   - developer registered/business address, status, offense flag, project count
 
-Also appends a lean hourly snapshot (id, takeup per unit type, timestamp) to
+Also appends a lean snapshot (id, takeup per unit type, timestamp) to
 teduh_history.json so sales momentum can be computed once 2+ data points exist.
 
-Batch mode (--batch N --of M):
-  Crawls ALL active projects (Lancar/Lewat/Sakit, ~2,948) using MAX_WORKERS=5
-  parallel HTTP workers. 5 workers × ~3.5s avg API latency from GitHub's US
-  servers = ~35 min per run. Every project refreshed 4x daily; scales as
-  project count grows. --batch is for the commit message only; --of for CLI compat.
+Self-tuning parallel mode (--of > 1, used by GitHub Actions):
+  Crawls ALL active projects every run. First probes API latency with 20 sample
+  requests, then auto-calculates the number of parallel workers needed to finish
+  within BUDGET_MINUTES. No hardcoded worker count — adapts automatically as the
+  project list grows or API speed changes.
 
-Full mode (--of 1, run manually):
-  Crawls all projects (24k+). Use locally or on a one-off basis.
+Full mode (--of 1, manual):
+  Crawls all projects including completed ones. Use locally for a one-off refresh.
 
 Designed to run via GitHub Actions (see .github/workflows/teduh-daily.yml).
 """
 import argparse
 import json
+import math
 import time
 import urllib.request
 import urllib.error
@@ -39,7 +40,8 @@ parser.add_argument('--of', type=int, default=1, dest='num_batches',
 args = parser.parse_args()
 
 ACTIVE_STATUSES = {"Lancar", "Lewat", "Sakit"}
-MAX_WORKERS = 5  # parallel HTTP workers — TEDUH API averages ~3.5s/call from GitHub servers
+BUDGET_MINUTES = 50   # target finish time; 60-min workflow cap gives 10-min headroom
+PROBE_N = 20          # projects to sample before calculating worker count
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120",
@@ -111,60 +113,81 @@ with open("teduh_projects.json") as f:
 projects = base_data["projects"]
 print(f"  {len(projects)} projects total")
 
-# Scheduled runs (--of > 1): all active projects, parallelised across MAX_WORKERS.
-# 5 workers × ~3.5s avg API latency = ~35 min for 2,948 projects, within 60-min cap.
-# Every project refreshed 4x daily regardless of how many there are.
-# Manual full crawl (--of 1): all projects including completed ones.
 if args.num_batches > 1:
     projects_to_crawl = [p for p in projects if p.get("status") in ACTIVE_STATUSES]
-    print(f"  {len(projects_to_crawl)} active projects — {MAX_WORKERS} parallel workers")
+    print(f"  {len(projects_to_crawl)} active projects (Lancar/Lewat/Sakit)")
 else:
     projects_to_crawl = projects
-    print(f"  Full crawl: {len(projects_to_crawl)} projects — {MAX_WORKERS} parallel workers")
+    print(f"  Full crawl: {len(projects_to_crawl)} projects")
 
 enriched = 0
 failed = 0
 no_price_data = 0
 t0 = time.time()
 
-# Hourly snapshot for the momentum log — deduped by timestamp so multiple
-# runs per day each produce a distinct history entry.
 ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:00Z")
 snapshot = {"date": ts, "projects": {}}
+
+
+def record(p, pid, detail):
+    """Apply a completed detail result to the project and snapshot."""
+    global enriched, failed, no_price_data
+    if detail is None:
+        failed += 1
+        return
+    p["detail"] = detail
+    if detail["unit_types"]:
+        enriched += 1
+        if pid:
+            snapshot["projects"][pid] = {
+                ut["type"]: ut["takeup_pct"]
+                for ut in detail["unit_types"] if ut.get("type")
+            }
+    else:
+        no_price_data += 1
 
 
 def crawl_one(p):
     pid = p.get("id")
     if not pid:
         return p, None, None
-    raw = fetch_detail(pid)
-    return p, pid, extract_detail(raw)
+    return p, pid, extract_detail(fetch_detail(pid))
 
 
-with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
-    futures = {executor.submit(crawl_one, p): p for p in projects_to_crawl}
+# ── Phase 1: latency probe ────────────────────────────────────────────────────
+# Crawl PROBE_N evenly-spaced projects sequentially to measure actual API speed
+# on this runner/network. Then compute exactly how many parallel workers are
+# needed to finish the rest within BUDGET_MINUTES. No hardcoded worker count.
+probe_step = max(1, len(projects_to_crawl) // PROBE_N)
+probe = projects_to_crawl[::probe_step][:PROBE_N]
+probe_ids = {id(p) for p in probe}
+
+t_probe = time.time()
+for p in probe:
+    p, pid, detail = crawl_one(p)
+    record(p, pid, detail)
+probe_elapsed = time.time() - t_probe
+
+avg_lat = probe_elapsed / max(len(probe), 1)
+rest = [p for p in projects_to_crawl if id(p) not in probe_ids]
+remaining_budget = max(BUDGET_MINUTES * 60 - probe_elapsed, 1)
+workers = max(2, min(math.ceil(len(rest) * avg_lat / remaining_budget), 20))
+print(f"  Probe: {avg_lat:.2f}s avg over {len(probe)} samples "
+      f"| {len(rest)} remaining | budget {remaining_budget/60:.0f} min "
+      f"→ {workers} workers auto-selected")
+
+# ── Phase 2: parallel crawl ───────────────────────────────────────────────────
+with ThreadPoolExecutor(max_workers=workers) as executor:
+    futures = {executor.submit(crawl_one, p): p for p in rest}
     for i, future in enumerate(as_completed(futures)):
-        p, pid, detail = future.result()
-        if detail is None:
-            failed += 1
-        else:
-            p["detail"] = detail
-            if detail["unit_types"]:
-                enriched += 1
-                if pid:
-                    snapshot["projects"][pid] = {
-                        ut["type"]: ut["takeup_pct"]
-                        for ut in detail["unit_types"] if ut.get("type")
-                    }
-            else:
-                no_price_data += 1
-
+        record(*future.result())
         if (i + 1) % 200 == 0:
             elapsed = time.time() - t0
-            rate = (i + 1) / elapsed
-            remaining = (len(projects_to_crawl) - i - 1) / rate
-            print(f"  {i+1}/{len(projects_to_crawl)} | enriched={enriched} failed={failed} "
-                  f"no_price={no_price_data} | ~{remaining/60:.1f} min remaining")
+            rate = (len(probe) + i + 1) / elapsed
+            remaining_n = len(rest) - i - 1
+            print(f"  {len(probe)+i+1}/{len(projects_to_crawl)} | "
+                  f"enriched={enriched} failed={failed} | "
+                  f"~{remaining_n/rate/60:.1f} min remaining")
 
 if failed:
     print(f"  {failed} projects failed — will pick up next run")
