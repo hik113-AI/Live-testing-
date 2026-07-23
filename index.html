@@ -1029,15 +1029,17 @@ async function renderBrochure(container){
     return;
   }
 
+  const TIMEOUT_MS = 12000;
+  const bail = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), TIMEOUT_MS));
   try {
     await loadPdfJs();
     const proxyUrl = '/api/brochure-proxy?url=' + encodeURIComponent(rawUrl);
-    const pdf = await pdfjsLib.getDocument(proxyUrl).promise;
+    const pdf = await Promise.race([pdfjsLib.getDocument(proxyUrl).promise, bail]);
     const page = await pdf.getPage(1);
-    const vp = page.getViewport({ scale: 1.5 });
+    const vp = page.getViewport({ scale: 1.2 });
     canvas.width = vp.width;
     canvas.height = vp.height;
-    await page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise;
+    await Promise.race([page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise, bail]);
     _brochureCache[rawUrl] = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
     container.classList.add('loaded');
   } catch(e){
@@ -2683,6 +2685,8 @@ document.getElementById('nlabel').textContent = 'loading';
   });
   trendDataReady = true;
   tryBuildTrending();
+  // Preload PDF.js in the background so it's ready before the first popup click
+  loadPdfJs().catch(() => {});
 })();
 </script>
 </body>
