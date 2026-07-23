@@ -708,6 +708,35 @@
     .dem-head::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);
       width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)}
   }
+
+  /* compact popup → view details button */
+  .pop-view-btn{display:block;width:100%;padding:11px 16px 12px;background:#143C2B;color:#F7F5F0;
+    font:600 12.5px/1 inherit;letter-spacing:.04em;text-align:center;
+    border:none;border-top:1px solid rgba(201,162,39,.2);
+    cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent}
+  .pop-view-btn:hover{background:#1a5038}
+  .pop-view-btn:active{background:#0e2a1a}
+
+  /* project detail panel (inside sidebar) */
+  .proj-detail{display:none}
+  .proj-detail.open{display:block}
+  .proj-det-back{display:flex;align-items:center;gap:7px;width:100%;
+    padding:9px 0;margin-bottom:12px;
+    background:none;border:none;border-bottom:1px solid rgba(27,42,36,.09);
+    font:inherit;font-size:11.5px;color:var(--ink-soft);
+    cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent;transition:color .14s}
+  .proj-det-back:hover{color:var(--ink)}
+  .proj-det-img{position:relative;height:160px;background:#eceae4;
+    border-radius:10px;overflow:hidden;margin-bottom:10px}
+  .proj-det-img img{position:absolute;top:0;left:0;width:100%;height:100%;display:none;object-fit:cover}
+  .proj-det-img.loaded img{display:block}
+  .proj-det-img-spin{position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:7px;font-size:11px;color:var(--ink-soft);opacity:.7}
+  .proj-det-img.loaded .proj-det-img-spin,.proj-det-img.error .proj-det-img-spin{display:none}
+  .proj-det-img-spin svg{animation:spin .9s linear infinite}
+  .proj-det-img-bar{position:absolute;bottom:8px;right:8px}
+  .proj-det-img.error .proj-det-img-bar{display:none}
+  .proj-det-hdr{margin-bottom:10px;border-radius:10px;overflow:hidden}
 </style>
 </head>
 <body>
@@ -727,6 +756,7 @@
       <span id="devFilterLabel">Showing developer</span>
       <button onclick="clearDevFilter()">✕ Clear</button>
     </div>
+    <div id="projDetail" class="proj-detail"></div>
     <div class="chips" id="viewChips" role="group" aria-label="Map view" style="margin-bottom:12px">
       <button class="chip on" data-v="proj">Projects</button>
       <button class="chip" data-v="heat">State heatmap</button>
@@ -1139,6 +1169,183 @@ function nativeShare() {
   }).catch(() => {});
 }
 
+// ---------- project detail panel ----------
+let _currentDetailProject = null;
+
+function openProjectDetail() {
+  const d = _currentDetailProject;
+  if (!d) return;
+  const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid,brochureUrl,state,bumi,devPhone,bedrooms,unitType,hasOffenses,unitsCompact] = d;
+  const tier = tierOf(pmin);
+  const pct = units > 0 ? Math.min(100, Math.round(sold/units*100)) : null;
+  const statusLabel = ten==='active' ? 'Active' : ten==='done' ? 'Completed' : null;
+  const dateLabel = dateType==='pjb' ? 'First sale' : 'Completion';
+  const M2_TO_SQFT = 10.7639;
+  const sqftMin = fmin ? Math.round(fmin * M2_TO_SQFT) : 0;
+  const sqftMax = fmax ? Math.round(fmax * M2_TO_SQFT) : 0;
+  let psfStr = '—';
+  if (pmin && fmax){
+    const psfLo = Math.round(pmin / (fmax * M2_TO_SQFT));
+    const psfHi = (pmax && fmin) ? Math.round(pmax / (fmin * M2_TO_SQFT)) : psfLo;
+    psfStr = psfHi > psfLo ? `RM ${psfLo}–${psfHi}` : `RM ${psfLo}`;
+  }
+  const hist = pid ? TUHISTORY[pid] : null;
+  let momentumBadge = '';
+  if (hist && hist.length >= 2) {
+    const gain = hist[hist.length-1].pct - hist[0].pct;
+    if (gain >= 5) momentumBadge = `<div style="margin-top:6px"><span class="momentum-badge fire">🔥 Rising fast</span></div>`;
+    else if (gain >= 2) momentumBadge = `<div style="margin-top:6px"><span class="momentum-badge up">📈 Gaining</span></div>`;
+  }
+  const bedroomsLabel = bedrooms ? `${bedrooms} BR` : '';
+  const shareURL = location.origin + '?lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5);
+  const waMsg = `${name}${dev ? ' by ' + dev : ''}\n${pmin ? fmtRM(pmin) + (pmax > pmin ? ' – ' + fmtRM(pmax) : '') : ''}\n${shareURL}`;
+  const waHref = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
+  popupShareData = { name, dev, url: shareURL };
+  const hasNativeShare2 = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const gridCells = [
+    unitType ? `<div><div class="k">Type</div><div class="v">${esc(unitType)}</div></div>` : '',
+    bedroomsLabel ? `<div><div class="k">Bedrooms</div><div class="v">${bedroomsLabel}</div></div>` : '',
+    sqftMin > 0 ? `<div><div class="k">Floor area</div><div class="v">${sqftMin.toLocaleString()}${sqftMax > sqftMin ? `–${sqftMax.toLocaleString()}` : ''} ft²</div></div>` : '',
+    psfStr !== '—' ? `<div><div class="k">Price psf</div><div class="v">${psfStr}</div></div>` : '',
+    units > 0 ? `<div><div class="k">Total units</div><div class="v">${units.toLocaleString()}</div></div>` : '',
+    units > 0 ? `<div><div class="k">Units sold</div><div class="v">${isPro ? sold.toLocaleString() : '<span style="opacity:.55;font-size:11px">🔒 Pro</span>'}</div></div>` : '',
+    date ? `<div style="grid-column:1/-1"><div class="k">${dateLabel}</div><div class="v">${esc(date.replace(/^\d{1,2}\s+/, ''))}</div></div>` : '',
+    bumi > 0 ? `<div style="grid-column:1/-1"><div class="k">Bumi quota</div><div class="v">${bumi}% reserved</div></div>` : '',
+  ].filter(Boolean).join('');
+  const allUnitsHTML = (() => {
+    const rows = parseUnitsCompact(unitsCompact);
+    if (!rows.length) return '';
+    const html = rows.map(u => {
+      const priceStr = u.pmin ? fmtRM(u.pmin)+(u.pmax>u.pmin?'–'+fmtRM(u.pmax):'') : '—';
+      const areaStr = u.area ? Math.round(u.area*10.7639).toLocaleString()+' ft²' : '—';
+      const bedsStr = u.beds ? u.beds+' BR' : '';
+      return `<tr>
+        <td style="padding:3px 6px 3px 0;font-size:11px;color:var(--ink)">${esc(u.type)}${bedsStr?' · '+bedsStr:''}</td>
+        <td style="padding:3px 6px;font-size:10.5px;color:var(--ink-soft);white-space:nowrap">${areaStr}</td>
+        <td style="padding:3px 0 3px 6px;font-size:10.5px;font-weight:600;color:var(--ink);text-align:right;white-space:nowrap">${priceStr}</td>
+      </tr>`;
+    }).join('');
+    return `<div style="margin:0 0 9px">
+      <div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px">Unit breakdown</div>
+      <table style="width:100%;border-collapse:collapse;border-top:1px solid rgba(27,42,36,.1)">${html}</table>
+    </div>`;
+  })();
+
+  const detailEl = document.getElementById('projDetail');
+  detailEl.innerHTML = `
+    <button class="proj-det-back" onclick="closeProjectDetail()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+      Back to filters
+    </button>
+    ${brochureUrl ? `<div class="proj-det-img" data-pid="${esc(pid)}" data-brochure-url="${esc(brochureUrl)}">
+      <img alt="Property brochure cover">
+      <div class="proj-det-img-spin">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
+        Loading image…
+      </div>
+      <div class="proj-det-img-bar">
+        <a class="pop-brochure-open" href="${esc(brochureUrl)}" target="_blank" rel="noopener">View full brochure ↗</a>
+      </div>
+    </div>` : ''}
+    <div class="pop-hdr proj-det-hdr">
+      <div class="pop-tags">
+        <span class="tag">${landed ? 'Landed' : 'High-rise'}</span>
+        ${statusLabel ? `<span class="tag tag-status">${statusLabel}</span>` : ''}
+      </div>
+      <h3>${esc(name)}</h3>
+      ${dev ? `<div class="pop-dev"><button class="pop-dev-link" onclick="filterByDev(${JSON.stringify(dev)});closeProjectDetail()" title="Show all projects by this developer">${esc(dev)}</button></div>` : ''}
+      ${state ? `<div class="pop-location">${esc(state)}</div>` : ''}
+      ${hasOffenses ? `<div style="margin-top:6px;padding:7px 9px;border-radius:6px;background:rgba(155,34,38,.08);border:1px solid rgba(155,34,38,.2)">
+        <div style="font-size:9.5px;font-weight:700;color:#9B2226;margin-bottom:3px">⚠ KPKT Violations on Record</div>
+        <div style="font-size:10.5px;color:rgba(247,245,240,.65);line-height:1.45">This developer has regulatory offenses recorded by KPKT. Buyers should exercise additional due diligence before committing.</div>
+      </div>` : ''}
+      ${momentumBadge}
+    </div>
+    <div class="pop-body">
+      <div class="pop-price">${pmin ? `${fmtRM(pmin)}${pmax > pmin ? ` – ${fmtRM(pmax)}` : ''} <span>price range</span>` : '<span style="font-size:13px;font-weight:400">Price not yet available</span>'}</div>
+      ${gridCells ? `<div class="pop-grid">${gridCells}</div>` : ''}
+      ${allUnitsHTML}
+      ${pct !== null ? (isPro
+        ? `<div class="pop-bar"><i style="width:${pct}%;background:${TIER_COLORS[tier]}"></i></div>
+           <div class="pop-soldline"><span>Take-up rate</span><span><b>${pct}%</b> sold</span></div>`
+        : lockBlock('Take-up rate — Pro')) : ''}
+    </div>
+    ${devPhone ? `<div class="pop-contact">
+      <a class="pop-contact-link" href="tel:${esc(normPhone(devPhone))}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 5.55 5.55l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.1z"/></svg>
+        ${esc(devPhone)}
+      </a>
+      <span class="pop-contact-label">Developer enquiry</span>
+    </div>` : ''}
+    <div class="pop-share">
+      <span style="font-size:9.5px;color:var(--ink-soft);letter-spacing:.04em">Share</span>
+      <div class="pop-share-row">
+        <a class="shr-btn shr-wa" href="${waHref}" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
+          <svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+            <circle cx="16" cy="16" r="16" fill="#25D366"/>
+            <path d="M22.6 9.4A9.2 9.2 0 0 0 7.3 20.6L6 26l5.6-1.5a9.2 9.2 0 0 0 4.4 1.1 9.2 9.2 0 0 0 6.6-15.2zm-6.6 14.1a7.6 7.6 0 0 1-3.9-1.1l-.3-.2-3.3.9.9-3.2-.2-.3a7.7 7.7 0 1 1 6.8 3.9zm4.2-5.8c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1a6.4 6.4 0 0 1-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5.2-.3v-.3l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3a2.9 2.9 0 0 0-.9 2.1c0 1.3.9 2.5 1 2.6.1.2 1.8 2.7 4.3 3.8.6.3 1.1.4 1.5.5.6.2 1.2.2 1.6.1.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.1z" fill="#fff"/>
+          </svg>
+          <span class="shr-label">WhatsApp</span>
+        </a>
+        <button class="shr-btn shr-copy" onclick="copyProjectLink(this)" aria-label="Copy link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          </svg>
+          <span class="shr-label">Copy link</span>
+        </button>
+        ${hasNativeShare2 ? `<button class="shr-btn shr-native" onclick="nativeShare()" aria-label="More options">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+          </svg>
+          <span class="shr-label">Share</span>
+        </button>` : ''}
+      </div>
+    </div>
+  `;
+
+  if (brochureUrl) {
+    const imgEl = detailEl.querySelector('.proj-det-img');
+    if (imgEl) {
+      const img = imgEl.querySelector('img');
+      const rawUrl = imgEl.dataset.brochureUrl;
+      img.onload = () => imgEl.classList.add('loaded');
+      img.onerror = () => {
+        if (rawUrl && !img.src.includes('/api/brochure-proxy')) {
+          img.src = '/api/brochure-proxy?url=' + encodeURIComponent(rawUrl) + '&mode=img';
+        } else {
+          imgEl.classList.add('error');
+        }
+      };
+      img.src = `b/${pid}.jpg`;
+    }
+  }
+
+  const panelBody = document.getElementById('panelBody');
+  panelBody.querySelectorAll(':scope > *:not(#projDetail)').forEach(el => {
+    el._prevDisplay = el.style.display;
+    el.style.display = 'none';
+  });
+  detailEl.classList.add('open');
+
+  if (panelEl.classList.contains('closed')) {
+    panelEl.classList.remove('closed');
+    panelBtn.setAttribute('aria-expanded', 'true');
+  }
+  map.closePopup();
+  panelBody.scrollTop = 0;
+}
+
+function closeProjectDetail() {
+  const panelBody = document.getElementById('panelBody');
+  panelBody.querySelectorAll(':scope > *:not(#projDetail)').forEach(el => {
+    el.style.display = el._prevDisplay !== undefined ? el._prevDisplay : '';
+    delete el._prevDisplay;
+  });
+  document.getElementById('projDetail').classList.remove('open');
+}
+
 // ---------- brochure image preview ----------
 function renderBrochure(container){
   const pid = container.dataset.pid;
@@ -1191,43 +1398,10 @@ function unitBreakdownHTML(compact){
 }
 
 function popupHTML(d){
-  const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid,brochureUrl,state,bumi,devPhone,bedrooms,unitType,hasOffenses,unitsCompact] = d;
-  const tier = tierOf(pmin);
-  const pct = units > 0 ? Math.min(100, Math.round(sold/units*100)) : null;
+  const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid,brochureUrl,state] = d;
   const statusLabel = ten==='active' ? 'Active' : ten==='done' ? 'Completed' : null;
-  const dateLabel = dateType==='pjb' ? 'First sale' : 'Completion';
-  const M2_TO_SQFT = 10.7639;
-  const sqftMin = fmin ? Math.round(fmin * M2_TO_SQFT) : 0;
-  const sqftMax = fmax ? Math.round(fmax * M2_TO_SQFT) : 0;
-  let psfStr = '—';
-  if (pmin && fmax){
-    const psfLo = Math.round(pmin / (fmax * M2_TO_SQFT));
-    const psfHi = (pmax && fmin) ? Math.round(pmax / (fmin * M2_TO_SQFT)) : psfLo;
-    psfStr = psfHi > psfLo ? `RM ${psfLo}–${psfHi}` : `RM ${psfLo}`;
-  }
-  const hist = pid ? TUHISTORY[pid] : null;
-  let momentumBadge = '';
-  if (hist && hist.length >= 2) {
-    const gain = hist[hist.length-1].pct - hist[0].pct;
-    if (gain >= 5) momentumBadge = `<div style="margin-top:6px"><span class="momentum-badge fire">🔥 Rising fast</span></div>`;
-    else if (gain >= 2) momentumBadge = `<div style="margin-top:6px"><span class="momentum-badge up">📈 Gaining</span></div>`;
-  }
-  const shareURL = location.origin + '?lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5);
-  const waMsg = `${name}${dev ? ' by ' + dev : ''}\n${pmin ? fmtRM(pmin) + (pmax > pmin ? ' – ' + fmtRM(pmax) : '') : ''}\n${shareURL}`;
-  const waHref = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
-  popupShareData = { name: name, dev: dev, url: shareURL };
-  const hasNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
-  const bedroomsLabel = bedrooms ? `${bedrooms} BR` : '';
-  const gridCells = [
-    unitType ? `<div><div class="k">Type</div><div class="v">${esc(unitType)}</div></div>` : '',
-    bedroomsLabel ? `<div><div class="k">Bedrooms</div><div class="v">${bedroomsLabel}</div></div>` : '',
-    sqftMin > 0 ? `<div><div class="k">Floor area</div><div class="v">${sqftMin.toLocaleString()}${sqftMax > sqftMin ? `–${sqftMax.toLocaleString()}` : ''} ft²</div></div>` : '',
-    psfStr !== '—' ? `<div><div class="k">Price psf</div><div class="v">${psfStr}</div></div>` : '',
-    units > 0 ? `<div><div class="k">Total units</div><div class="v">${units.toLocaleString()}</div></div>` : '',
-    units > 0 ? `<div><div class="k">Units sold</div><div class="v">${isPro ? sold.toLocaleString() : '<span style="opacity:.55;font-size:11px">🔒 Pro</span>'}</div></div>` : '',
-    date ? `<div style="grid-column:1/-1"><div class="k">${dateLabel}</div><div class="v">${esc(date.replace(/^\d{1,2}\s+/, ''))}</div></div>` : '',
-    bumi > 0 ? `<div style="grid-column:1/-1"><div class="k">Bumi quota</div><div class="v">${bumi}% reserved</div></div>` : '',
-  ].filter(Boolean).join('');
+  _currentDetailProject = d;
+  popupShareData = { name, dev, url: location.origin + '?lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5) };
   return `<div class="pop">
     <div class="pop-hdr">
       <div class="pop-tags">
@@ -1237,11 +1411,6 @@ function popupHTML(d){
       <h3>${esc(name)}</h3>
       ${dev ? `<div class="pop-dev"><button class="pop-dev-link" onclick="filterByDev(${JSON.stringify(dev)})" title="Show all projects by this developer">${esc(dev)}</button></div>` : ''}
       ${state ? `<div class="pop-location">${esc(state)}</div>` : ''}
-      ${hasOffenses ? `<div style="margin-top:6px;padding:7px 9px;border-radius:6px;background:rgba(155,34,38,.08);border:1px solid rgba(155,34,38,.2)">
-        <div style="font-size:9.5px;font-weight:700;color:#9B2226;margin-bottom:3px">⚠ KPKT Violations on Record</div>
-        <div style="font-size:10.5px;color:rgba(247,245,240,.65);line-height:1.45">This developer has regulatory offenses recorded by KPKT (Ministry of Housing). Buyers should exercise additional due diligence before committing.</div>
-      </div>` : ''}
-      ${momentumBadge}
     </div>
     ${brochureUrl ? `<div class="pop-brochure" data-pid="${esc(pid)}" data-brochure-url="${esc(brochureUrl)}">
       <img alt="Property brochure cover">
@@ -1249,52 +1418,11 @@ function popupHTML(d){
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
         Loading image…
       </div>
-      <div class="pop-brochure-bar">
-        <a class="pop-brochure-open" href="${esc(brochureUrl)}" target="_blank" rel="noopener">View full brochure ↗</a>
-      </div>
     </div>` : ''}
-    <div class="pop-body">
+    <div class="pop-body" style="padding-bottom:8px">
       <div class="pop-price">${pmin ? `${fmtRM(pmin)}${pmax > pmin ? ` – ${fmtRM(pmax)}` : ''} <span>price range</span>` : '<span style="font-size:13px;font-weight:400">Price not yet available</span>'}</div>
-      ${gridCells ? `<div class="pop-grid">${gridCells}</div>` : ''}
-      ${unitsCompact ? unitBreakdownHTML(unitsCompact) : ''}
-      ${pct !== null ? (isPro
-        ? `<div class="pop-bar"><i style="width:${pct}%;background:${TIER_COLORS[tier]}"></i></div>
-           <div class="pop-soldline"><span>Take-up rate</span><span><b>${pct}%</b> sold</span></div>`
-        : lockBlock('Take-up rate — Pro')) : ''}
     </div>
-    ${devPhone ? `<div class="pop-contact">
-      <a class="pop-contact-link" href="tel:${esc(normPhone(devPhone))}">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 5.55 5.55l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.1z"/></svg>
-        ${esc(devPhone)}
-      </a>
-      <span class="pop-contact-label">Developer enquiry</span>
-    </div>` : ''}
-    <div class="pop-share">
-      <span style="font-size:9.5px;color:var(--ink-soft);letter-spacing:.04em">Share</span>
-      <div class="pop-share-row">
-        <a class="shr-btn shr-wa" href="${waHref}" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
-          <svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-            <circle cx="16" cy="16" r="16" fill="#25D366"/>
-            <path d="M22.6 9.4A9.2 9.2 0 0 0 7.3 20.6L6 26l5.6-1.5a9.2 9.2 0 0 0 4.4 1.1 9.2 9.2 0 0 0 6.6-15.2zm-6.6 14.1a7.6 7.6 0 0 1-3.9-1.1l-.3-.2-3.3.9.9-3.2-.2-.3a7.7 7.7 0 1 1 6.8 3.9zm4.2-5.8c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1a6.4 6.4 0 0 1-3.2-2.8c-.1-.2 0-.4.1-.5l.4-.5.2-.3v-.3l-.7-1.7c-.2-.4-.4-.4-.5-.4h-.5c-.2 0-.4.1-.6.3a2.9 2.9 0 0 0-.9 2.1c0 1.3.9 2.5 1 2.6.1.2 1.8 2.7 4.3 3.8.6.3 1.1.4 1.5.5.6.2 1.2.2 1.6.1.5-.1 1.4-.6 1.6-1.1.2-.6.2-1 .1-1.1l-.5-.1z" fill="#fff"/>
-          </svg>
-          <span class="shr-label">WhatsApp</span>
-        </a>
-        <button class="shr-btn shr-copy" onclick="copyProjectLink(this)" aria-label="Copy link">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <rect x="9" y="9" width="13" height="13" rx="2"/>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-          </svg>
-          <span class="shr-label">Copy link</span>
-        </button>
-        ${hasNativeShare ? `<button class="shr-btn shr-native" onclick="nativeShare()" aria-label="More options">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-          </svg>
-          <span class="shr-label">Share</span>
-        </button>` : ''}
-      </div>
-    </div>
+    <button class="pop-view-btn" onclick="openProjectDetail()">View property details →</button>
   </div>`;
 }
 
