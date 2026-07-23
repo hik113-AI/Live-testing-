@@ -29,7 +29,7 @@ TEDUH API (kpkt.gov.my)
 | File | Purpose |
 |---|---|
 | `index.html` | Entire frontend — map, UI, filters, AI chat |
-| `map_data.json` | What the site loads — 2,800+ projects in 14-col arrays + SSTATS |
+| `map_data.json` | What the site loads — 2,800+ projects in 15-col arrays + SSTATS |
 | `teduh_projects.json` | Full TEDUH store (14MB), updated by crawler |
 | `teduh_history.json` | Rolling 360-snapshot take-up history for trend sparklines |
 | `generate_map_data.py` | Converts teduh_projects.json → map_data.json after each crawl |
@@ -55,7 +55,7 @@ Completed (Siap Dengan CCC/CFO) only included in map if expected_completion >= 2
 ## map_data.json format
 
 ```
-projects: array of 14-col arrays per project:
+projects: array of 15-col arrays per project:
   [0] name
   [1] lat
   [2] lon
@@ -70,6 +70,7 @@ projects: array of 14-col arrays per project:
   [11] area_max (m², float)
   [12] date string "DD Mon YYYY"
   [13] "pjb" (first sale date) | "ccc" (expected completion)
+  [14] TEDUH project ID string (links to teduh_history.json for momentum/sparklines)
 
 sstats: per-state object { n, units, sold, landed, highrise, active, done, medP, ty, topdev }
 ```

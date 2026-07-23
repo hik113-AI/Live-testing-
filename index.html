@@ -4,6 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>New Property Launches · Peninsular Malaysia 2021–2025</title>
+<meta name="description" content="Interactive map of 2,800+ new private property launches across Peninsular Malaysia. Filter by price, developer, and status. Powered by live TEDUH/KPKT data.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://interstellarsanctuary.com">
+<meta property="og:title" content="New Property Launches · Peninsular Malaysia">
+<meta property="og:description" content="Interactive map of 2,800+ new launches. Filter by price, developer, type, and status. Powered by live TEDUH/KPKT data.">
+<meta property="og:url" content="https://interstellarsanctuary.com">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Malaysia Launches Explorer">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="New Property Launches · Peninsular Malaysia">
+<meta name="twitter:description" content="Interactive map of 2,800+ new launches. Filter by price, developer, type, and status.">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Malaysia New Launches Explorer","url":"https://interstellarsanctuary.com","description":"Interactive map of 2,800+ new private property launches across Peninsular Malaysia (2021–2025). Powered by live TEDUH/KPKT data.","applicationCategory":"RealEstate","operatingSystem":"Web browser"}</script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
 <style>
@@ -464,6 +476,30 @@
       width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+
+  /* momentum badges (popup) */
+  .momentum-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;margin:4px 0 8px}
+  .momentum-badge.fire{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
+  .momentum-badge.up{background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7}
+
+  /* WhatsApp share button (popup) */
+  .wa-share{display:block;width:100%;margin-top:11px;padding:8px 0;background:#25D366;color:#fff;
+    border:none;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;
+    text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
+  .wa-share:hover{background:#1EB359}
+
+  /* trending section (panel) */
+  .trend-item{display:flex;align-items:center;justify-content:space-between;
+    padding:6px 0;border-bottom:1px dashed rgba(27,42,36,.1)}
+  .trend-item:last-child{border-bottom:none}
+  .trend-name{font-size:12px;font-weight:600;color:var(--ink);flex:1;min-width:0;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:8px}
+  .trend-gain{font-size:11px;color:#065F46;font-weight:700;flex:none}
+
+  /* mobile: popup scrolls if content is tall */
+  @media(max-width:560px){
+    .leaflet-popup-content-wrapper{max-height:70vh;overflow-y:auto}
+  }
   /* ---------- demographics district panel ---------- */
   .dem-card{position:absolute;z-index:1050;top:66px;right:16px;width:340px;max-height:calc(100% - 82px);overflow-y:auto;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);display:none;overscroll-behavior:contain}
   .dem-card::-webkit-scrollbar{width:6px}
@@ -611,6 +647,13 @@
           <label class="toggle am-mall"><span>🛍️ Shopping malls</span><input type="checkbox" id="togMalls"><span class="tk"></span></label>
         </div>
         <div class="lhint" id="amenHint" style="margin-top:7px">Loading amenity data…</div>
+      </div></div>
+    </section>
+
+    <section class="acc" data-acc id="trendingAcc" style="display:none">
+      <button class="acc-head" aria-expanded="false"><span>Trending this week</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+      <div class="acc-body"><div class="acc-inner" id="trendingBody">
+        <div class="lhint">Loading…</div>
       </div></div>
     </section>
 
@@ -825,7 +868,7 @@ const cluster = L.markerClusterGroup({
 map.addLayer(cluster);
 
 function popupHTML(d){
-  const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType] = d;
+  const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid] = d;
   const tier = tierOf(pmin);
   const pct = units > 0 ? Math.min(100, Math.round(sold/units*100)) : null;
   const statusLabel = ten==='active' ? 'Active' : ten==='done' ? 'Completed' : null;
@@ -840,9 +883,19 @@ function popupHTML(d){
     const psfHi = (pmax && fmin) ? Math.round(pmax / (fmin * M2_TO_SQFT)) : psfLo;
     psfStr = psfHi > psfLo ? `RM ${psfLo}–${psfHi}` : `RM ${psfLo}`;
   }
+  const hist = pid ? TUHISTORY[pid] : null;
+  let momentumBadge = '';
+  if (hist && hist.length >= 2) {
+    const gain = hist[hist.length-1].pct - hist[0].pct;
+    if (gain >= 5) momentumBadge = `<span class="momentum-badge fire">🔥 Rising fast</span>`;
+    else if (gain >= 2) momentumBadge = `<span class="momentum-badge up">📈 Gaining</span>`;
+  }
+  const waMsg = `${name}${dev?' by '+dev:''}\n${pmin?`${fmtRM(pmin)}${pmax>pmin?' – '+fmtRM(pmax):''}`:''}\nhttps://interstellarsanctuary.com`;
+  const waHref = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
   return `<div class="pop">
     <span class="tag" style="background:${TIER_COLORS[tier]}">${landed?'Landed':'High-rise'}</span>
     ${statusLabel?`<span class="tag" style="background:var(--ink-soft)">${statusLabel}</span>`:''}
+    ${momentumBadge}
     <h3>${esc(name)}</h3>
     <div class="dev">${esc(dev)}</div>
     <div class="price">${pmin?`${fmtRM(pmin)}${pmax>pmin?` – ${fmtRM(pmax)}`:''} <span>price range</span>`:'<span>Price not yet available</span>'}</div>
@@ -857,6 +910,7 @@ function popupHTML(d){
       ? `<div class="bar"><i style="width:${pct}%;background:${TIER_COLORS[tier]}"></i></div>
          <div class="soldline"><span>Take-up rate</span><span><b>${pct}%</b> sold</span></div>`
       : lockBlock('Take-up rate — Pro')) : ''}
+    <a class="wa-share" href="${waHref}" target="_blank" rel="noopener">Share on WhatsApp</a>
   </div>`;
 }
 
@@ -1880,6 +1934,40 @@ let DEMDATA = null, demLayer = null, demActive = false, demSelected = null, demB
 
 // ---- Take-up history (from TEDUH crawler hourly snapshots) ----
 let TUHISTORY = {};   // { teduh_project_id: [{date, pct}] }
+
+// ---- Trending panel ----
+let trendDataReady = false, trendHistReady = false;
+
+function tryBuildTrending() {
+  if (!trendDataReady || !trendHistReady) return;
+  const acc = document.getElementById('trendingAcc');
+  const body = document.getElementById('trendingBody');
+  if (!acc || !body) return;
+
+  const idMap = {};
+  for (const d of DATA) { if (d[14]) idMap[d[14]] = d[0]; }
+
+  const items = [];
+  for (const [pid, snaps] of Object.entries(TUHISTORY)) {
+    if (snaps.length < 2) continue;
+    const gain = snaps[snaps.length-1].pct - snaps[0].pct;
+    if (gain <= 0) continue;
+    const name = idMap[pid];
+    if (!name) continue;
+    items.push({name, gain});
+  }
+  items.sort((a,b) => b.gain - a.gain);
+  const top5 = items.slice(0,5);
+
+  if (!top5.length) { acc.style.display='none'; return; }
+
+  acc.style.display = '';
+  body.innerHTML = `<div class="lhint" style="margin-bottom:7px">Highest take-up momentum in recent crawls.</div>` +
+    top5.map(t =>
+      `<div class="trend-item"><span class="trend-name">${esc(t.name)}</span><span class="trend-gain">+${t.gain.toFixed(1)}%</span></div>`
+    ).join('');
+}
+
 fetch('teduh_history.json')
   .then(r => r.json())
   .then(data => {
@@ -1887,14 +1975,15 @@ fetch('teduh_history.json')
     for (const snap of (data.snapshots || [])) {
       for (const [pid, types] of Object.entries(snap.projects || {})) {
         if (!byId[pid]) byId[pid] = [];
-        // Average take-up across all unit types in this snapshot
         const vals = Object.values(types).filter(v => v !== null && v !== undefined);
-        if (vals.length) byId[pid].push({ date: snap.date, pct: vals.reduce((s,v)=>s+v,0)/vals.length });
+        if (vals.length) byId[pid].push({ date: snap.date, pct: vals.reduce((s,v)=>s+parseFloat(v),0)/vals.length });
       }
     }
     TUHISTORY = byId;
+    trendHistReady = true;
+    tryBuildTrending();
   })
-  .catch(() => {}); // no history yet — silently skip
+  .catch(() => { trendHistReady = true; tryBuildTrending(); });
 
 // ---- Point-in-polygon helpers for district liquidity analysis ----
 function pointInRing(lat, lon, ring) {
@@ -2297,6 +2386,8 @@ document.getElementById('nlabel').textContent = 'loading';
 
   buildMarkers();
   apply();
+  trendDataReady = true;
+  tryBuildTrending();
 })();
 </script>
 </body>

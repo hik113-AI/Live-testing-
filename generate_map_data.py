@@ -6,7 +6,7 @@ Filters TEDUH projects for the map:
   - Completed projects (Siap Dengan CCC/CFO) with expected_completion >= 2021
 
 Output: map_data.json with:
-  - projects: 13-column arrays matching the site's DATA format
+  - projects: 14-column arrays matching the site's DATA format
   - sstats: per-state stats for the state choropleth view
 
 Run after each detail crawl via GitHub Actions.
@@ -172,6 +172,7 @@ for p in all_projects:
         area_max,         # d[11] area_max m²
         date_str,         # d[12] "DD Mon YYYY"
         date_type,        # d[13] "pjb"=first sale date, "ccc"=expected completion
+        p.get("id", ""),  # d[14] TEDUH project ID (for momentum/history lookup)
     ])
 
     # Accumulate state stats
