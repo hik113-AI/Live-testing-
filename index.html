@@ -562,8 +562,8 @@
 
   /* brochure preview (popup) */
   .pop-brochure{position:relative;height:190px;background:#eceae4;border-bottom:1px solid rgba(27,42,36,.09);overflow:hidden;flex-shrink:0}
-  .pop-brochure canvas{position:absolute;top:0;left:0;width:100%;height:auto;display:none;image-rendering:crisp-edges}
-  .pop-brochure.loaded canvas{display:block}
+  .pop-brochure img{position:absolute;top:0;left:0;width:100%;height:auto;display:none;object-fit:cover}
+  .pop-brochure.loaded img{display:block}
   .pop-brochure-spin{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:11px;color:var(--ink-soft);opacity:.7}
   .pop-brochure.loaded .pop-brochure-spin,.pop-brochure.error .pop-brochure-spin{display:none}
   .pop-brochure-spin svg{animation:spin .9s linear infinite}
@@ -994,58 +994,18 @@ function nativeShare() {
   }).catch(() => {});
 }
 
-// ---------- brochure PDF preview ----------
-const _brochureCache = {};
-let _pdfJsReady = null;
+// ---------- brochure image preview ----------
+const _brochureErrCache = new Set();
 
-function loadPdfJs(){
-  if (_pdfJsReady) return _pdfJsReady;
-  _pdfJsReady = new Promise((resolve, reject) => {
-    const s = document.createElement('script');
-    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
-    s.onload = () => {
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-      resolve();
-    };
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-  return _pdfJsReady;
-}
-
-async function renderBrochure(container){
+function renderBrochure(container){
   const rawUrl = container.dataset.brochureUrl;
-  if (!rawUrl) return;
-  const cached = _brochureCache[rawUrl];
-  const canvas = container.querySelector('canvas');
-
-  if (cached === 'error'){ container.classList.add('error'); return; }
-  if (cached instanceof ImageData){
-    canvas.width = cached.width;
-    canvas.height = cached.height;
-    canvas.getContext('2d').putImageData(cached, 0, 0);
-    container.classList.add('loaded');
-    return;
-  }
-
-  const TIMEOUT_MS = 12000;
-  const bail = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), TIMEOUT_MS));
-  try {
-    await loadPdfJs();
-    const proxyUrl = '/api/brochure-proxy?url=' + encodeURIComponent(rawUrl);
-    const pdf = await Promise.race([pdfjsLib.getDocument(proxyUrl).promise, bail]);
-    const page = await pdf.getPage(1);
-    const vp = page.getViewport({ scale: 1.2 });
-    canvas.width = vp.width;
-    canvas.height = vp.height;
-    await Promise.race([page.render({ canvasContext: canvas.getContext('2d'), viewport: vp }).promise, bail]);
-    _brochureCache[rawUrl] = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
-    container.classList.add('loaded');
-  } catch(e){
-    _brochureCache[rawUrl] = 'error';
-    container.classList.add('error');
-  }
+  if (!rawUrl || container.dataset.brochureLoading) return;
+  if (_brochureErrCache.has(rawUrl)){ container.classList.add('error'); return; }
+  container.dataset.brochureLoading = '1';
+  const img = container.querySelector('img');
+  img.onload  = () => container.classList.add('loaded');
+  img.onerror = () => { _brochureErrCache.add(rawUrl); container.classList.add('error'); };
+  img.src = '/api/brochure-proxy?url=' + encodeURIComponent(rawUrl) + '&mode=img';
 }
 
 function popupHTML(d){
@@ -1094,14 +1054,13 @@ function popupHTML(d){
       ${momentumBadge}
     </div>
     ${brochureUrl ? `<div class="pop-brochure" data-brochure-url="${esc(brochureUrl)}">
-      <canvas></canvas>
+      <img alt="Property brochure cover">
       <div class="pop-brochure-spin">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
-        Loading brochure…
+        Loading image…
       </div>
       <div class="pop-brochure-bar">
-        <a class="pop-brochure-open" href="${esc(brochureUrl)}" target="_blank" rel="noopener">Open brochure ↗</a>
-        <span class="pop-brochure-pg">Pg 1</span>
+        <a class="pop-brochure-open" href="${esc(brochureUrl)}" target="_blank" rel="noopener">View full brochure ↗</a>
       </div>
     </div>` : ''}
     <div class="pop-body">
@@ -2685,8 +2644,6 @@ document.getElementById('nlabel').textContent = 'loading';
   });
   trendDataReady = true;
   tryBuildTrending();
-  // Preload PDF.js in the background so it's ready before the first popup click
-  loadPdfJs().catch(() => {});
 })();
 </script>
 </body>
