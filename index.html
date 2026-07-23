@@ -175,8 +175,19 @@
   .reset:hover{border-color:var(--ink);color:var(--ink)}
   .btn-near-me{background:#fff;border:1.5px solid rgba(27,42,36,.18);color:var(--ink-soft);border-radius:99px;
     font-size:11.5px;cursor:pointer;padding:5px 13px;font:inherit;
-    transition:border-color .14s,color .14s}
-  .btn-near-me:hover{border-color:var(--ink);color:var(--ink)}
+    transition:border-color .14s,color .14s,background .14s}
+  .btn-near-me:hover{border-color:var(--t1);color:var(--t1)}
+  .btn-near-me.active{border-color:var(--t1);color:var(--t1);background:rgba(42,157,143,.07)}
+
+  /* location dot */
+  .loc-pin{width:40px;height:40px;position:relative}
+  .loc-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:15px;height:15px;border-radius:50%;background:var(--t1);
+    border:2.5px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.35)}
+  .loc-pulse{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:15px;height:15px;border-radius:50%;background:var(--t1);opacity:.5;
+    animation:locPulse 2s ease-out infinite}
+  @keyframes locPulse{0%{transform:translate(-50%,-50%) scale(1);opacity:.5}100%{transform:translate(-50%,-50%) scale(4.5);opacity:0}}
 
   /* ---------- legend = price filter (signature) ---------- */
   .legend{
@@ -1934,15 +1945,34 @@ function showToast(msg){
 }
 
 // near me
-let _nearMeMarker = null;
+let _nearMeMarker = null, _nearMeCircle = null;
+function clearNearMe(){
+  if (_nearMeMarker){ _nearMeMarker.remove(); _nearMeMarker = null; }
+  if (_nearMeCircle){ _nearMeCircle.remove(); _nearMeCircle = null; }
+  const btn = document.getElementById('nearMe');
+  btn.classList.remove('active');
+  btn.textContent = '📍 Near me';
+}
 document.getElementById('nearMe').addEventListener('click', () => {
+  if (_nearMeMarker){ clearNearMe(); return; }
   if (!navigator.geolocation){ showToast('Geolocation not supported on this device.'); return; }
   navigator.geolocation.getCurrentPosition(pos => {
     const {latitude: lat, longitude: lng} = pos.coords;
     map.flyTo([lat, lng], 14);
-    if (_nearMeMarker) _nearMeMarker.remove();
-    _nearMeMarker = L.circleMarker([lat, lng], {radius:8, color:'#143C2B', weight:2, fillColor:'#C9A227', fillOpacity:1})
-      .addTo(map).bindPopup('Your location').openPopup();
+    _nearMeMarker = L.marker([lat, lng], {
+      icon: L.divIcon({
+        html:'<div class="loc-pin"><div class="loc-pulse"></div><div class="loc-dot"></div></div>',
+        className:'', iconSize:[40,40], iconAnchor:[20,20]
+      }),
+      zIndexOffset: 1000
+    }).addTo(map);
+    _nearMeCircle = L.circle([lat, lng], {
+      radius: 5000, color:'#2A9D8F', weight:1.5, opacity:.45,
+      fillColor:'#2A9D8F', fillOpacity:.06
+    }).addTo(map);
+    const btn = document.getElementById('nearMe');
+    btn.classList.add('active');
+    btn.textContent = '✕ Clear location';
   }, () => showToast('Could not get your location — please allow location access.'));
 });
 
