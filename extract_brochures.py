@@ -48,7 +48,7 @@ def extract_cover_jpeg(data: bytes) -> bytes | None:
                     break
                 j += 1
             else:
-                break
+                i += 1  # no end marker found — skip this start byte and keep scanning
         else:
             i += 1
     return None
