@@ -29,7 +29,7 @@ TEDUH API (kpkt.gov.my)
 | File | Purpose |
 |---|---|
 | `index.html` | Entire frontend — map, UI, filters, AI chat |
-| `map_data.json` | What the site loads — 2,800+ projects in 15-col arrays + SSTATS |
+| `map_data.json` | What the site loads — 2,800+ projects in 16-col arrays + SSTATS |
 | `teduh_projects.json` | Full TEDUH store (14MB), updated by crawler |
 | `teduh_history.json` | Rolling 360-snapshot take-up history for trend sparklines |
 | `generate_map_data.py` | Converts teduh_projects.json → map_data.json after each crawl |
@@ -55,11 +55,11 @@ Completed (Siap Dengan CCC/CFO) only included in map if expected_completion >= 2
 ## map_data.json format
 
 ```
-projects: array of 15-col arrays per project:
+projects: array of 24-col arrays per project:
   [0] name
   [1] lat
   [2] lon
-  [3] "active" | "done"   (status, replaces old tenure fh/lh)
+  [3] "active" | "done"   (status)
   [4] 1=landed, 0=highrise
   [5] developer name
   [6] price_min (int, RM)
@@ -71,13 +71,33 @@ projects: array of 15-col arrays per project:
   [12] date string "DD Mon YYYY"
   [13] "pjb" (first sale date) | "ccc" (expected completion)
   [14] TEDUH project ID string (links to teduh_history.json for momentum/sparklines)
+  [15] brochure PDF URL (hims.kpkt.gov.my, empty string if none)
+  [16] state name (normalized, e.g. "Selangor", "Kuala Lumpur")
+  [17] bumi quota % as int (0 = none/unknown)
+  [18] developer phone string
+  [19] bedroom range string e.g. "3" or "2–5"
+  [20] unit type string (English) e.g. "Terrace" or "Condo / SoHo"
+  [21] has_offenses int (1 if developer has KPKT violations on record)
+  [22] units_compact string "TypeEN|beds|area_m2|pmin|pmax|units~..." (one entry per unit type)
+  [23] comp_year int (completion year, 0 if unknown — used for year filter)
 
-sstats: per-state object { n, units, sold, landed, highrise, active, done, medP, ty, topdev }
+Cache key: teduh_map_v4
+
+sstats: per-state object { n, units, sold, landed, highrise, active, done, medP, medPsf, ty, topdev }
+  medPsf: median price per sq ft across projects in that state
 ```
+
+## Brochure images (b/)
+
+`extract_brochures.py` runs as part of every crawl cycle. For each project with a brochure PDF URL and no existing image, it downloads the PDF, extracts the largest embedded JPEG, compresses to ≤90KB, and saves to `b/{project_id}.jpg`.
+
+Vercel serves these as static files. The frontend (`index.html`) tries `b/{pid}.jpg` first — instant load if extracted. Falls back to `/api/brochure-proxy?mode=img` for any not yet extracted.
+
+The `b/` folder lives in git and is committed alongside data files each crawl run. ~2,700 images ≈ 160MB total (one-time; only new images added per run).
 
 ## Site data loading
 
-`map_data.json` is fetched async on page load with a 6-hour localStorage cache (key: `teduh_map_v1`). First load hits the network; subsequent loads within 6h use cache. To force a fresh load: clear localStorage.
+`map_data.json` is fetched async on page load with a 6-hour localStorage cache (key: `teduh_map_v2`). First load hits the network; subsequent loads within 6h use cache. To force a fresh load: clear localStorage.
 
 ## Ad system (ads.json)
 

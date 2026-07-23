@@ -22,6 +22,7 @@
   :root{
     --ink:#1B2A24; --ink-soft:#3C5147; --paper:#F7F5F0; --line:#C8B88A;
     --t1:#2A9D8F; --t2:#D9A23B; --t3:#E76F51; --t4:#9B2226;
+    --accent:#C9A227;
     --shadow:0 10px 30px rgba(27,42,36,.18);
   }
   *{box-sizing:border-box;margin:0}
@@ -53,12 +54,30 @@
   .panel-head .eyebrow{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#C9A227;margin-bottom:5px}
   .panel-head h1{font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:22px;line-height:1.18}
   .panel-head .sub{font-size:11px;color:rgba(247,245,240,.65);margin-top:6px;line-height:1.5}
-  .panel-body{padding:14px 16px 16px;max-height:calc(100vh - 124px);overflow-y:auto;overscroll-behavior:contain;
+  .panel-body{padding:14px 16px 16px;max-height:calc(100vh - 148px);overflow-y:auto;overscroll-behavior:contain;
     transform:scaleY(1);transform-origin:top;opacity:1;
     transition:max-height 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.25s ease,transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
   .panel-body::-webkit-scrollbar{width:8px}
   .panel-body::-webkit-scrollbar-thumb{background:rgba(27,42,36,.18);border-radius:4px;border:2px solid transparent;background-clip:padding-box}
   .panel-body::-webkit-scrollbar-track{background:transparent}
+
+  /* sidebar section structure */
+  .sidebar-sec{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+    color:var(--ink-soft);padding:14px 0 7px;border-top:1px solid rgba(27,42,36,.1);margin-top:6px;opacity:.65}
+  .sidebar-sec.is-first{border-top:none;padding-top:4px;margin-top:0}
+  .panel-search{margin-bottom:10px}
+  .qf-group{margin-bottom:9px}
+  .qf-tag{font-size:9px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;
+    color:var(--ink-soft);opacity:.7;margin-bottom:5px}
+
+  .tier-rows{display:flex;flex-direction:column;gap:1px}
+  .tier-row-btn{display:flex;align-items:center;gap:9px;padding:5px 7px;border-radius:7px;
+    cursor:pointer;border:none;background:transparent;font:inherit;text-align:left;
+    font-size:12.5px;color:var(--ink);width:100%;transition:background .14s}
+  .tier-row-btn:hover{background:rgba(27,42,36,.06)}
+  .tier-row-btn.off{opacity:.28}
+  .tier-row-btn .tr-dot{width:13px;height:13px;flex:none;border-radius:50%;
+    border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 1px rgba(0,0,0,.1)}
 
   .search{position:relative;margin-bottom:12px}
   .search input{
@@ -137,10 +156,15 @@
     font-size:12.5px;color:var(--ink-soft);
   }
   .count b{color:var(--ink);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;display:block;line-height:1;margin-bottom:2px}
+  .count-btns{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
   .reset{background:#fff;border:1.5px solid rgba(27,42,36,.18);color:var(--ink-soft);border-radius:99px;
-    font-size:11.5px;cursor:pointer;padding:5px 13px;margin-top:8px;text-decoration:none;display:none;
-    transition:border-color .14s,color .14s}
+    font-size:11.5px;cursor:pointer;padding:5px 13px;text-decoration:none;display:none;
+    transition:border-color .14s,color .14s;font:inherit}
   .reset:hover{border-color:var(--ink);color:var(--ink)}
+  .btn-near-me{background:#fff;border:1.5px solid rgba(27,42,36,.18);color:var(--ink-soft);border-radius:99px;
+    font-size:11.5px;cursor:pointer;padding:5px 13px;font:inherit;
+    transition:border-color .14s,color .14s}
+  .btn-near-me:hover{border-color:var(--ink);color:var(--ink)}
 
   /* ---------- legend = price filter (signature) ---------- */
   .legend{
@@ -236,22 +260,23 @@
   .ad-top-cta:hover{background:#27443A}
   .leaflet-popup-content{margin:0;width:auto !important}
   .pop{width:310px;box-sizing:border-box;overflow:hidden}
-  .pop-hdr{background:#143C2B;color:#F7F5F0;padding:14px 16px 13px}
+  .pop-hdr{background:#143C2B;color:#F7F5F0;padding:11px 16px 11px}
   .pop-hdr .pop-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
   .pop-hdr .tag{display:inline-block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;
     padding:3px 8px;border-radius:4px;background:rgba(255,255,255,.14);color:#F7F5F0}
   .pop-hdr .tag-status{background:rgba(201,162,39,.28);color:#F3D87A}
   .pop-hdr h3{font-family:Georgia,serif;font-size:17px;line-height:1.25;margin-bottom:3px}
   .pop-hdr .pop-dev{font-size:11.5px;color:rgba(247,245,240,.6)}
-  .pop-body{padding:13px 16px 0}
-  .pop-price{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;color:#143C2B;margin-bottom:11px;line-height:1.2}
+  .pop-hdr .pop-location{font-size:10.5px;color:rgba(247,245,240,.45);margin-top:2px;letter-spacing:.02em}
+  .pop-body{padding:10px 16px 10px}
+  .pop-price{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:#143C2B;margin-bottom:8px;line-height:1.2}
   .pop-price span{font-size:11px;font-weight:400;color:var(--ink-soft)}
-  .pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px 14px;font-size:12px;margin-bottom:12px}
-  .pop-grid .k{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:1px}
+  .pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;font-size:12px;margin-bottom:9px}
+  .pop-grid .k{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:0}
   .pop-grid .v{font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
-  .pop-bar{height:6px;background:rgba(27,42,36,.12);border-radius:99px;overflow:hidden;margin-bottom:3px}
+  .pop-bar{height:5px;background:rgba(27,42,36,.12);border-radius:99px;overflow:hidden;margin-bottom:3px}
   .pop-bar i{display:block;height:100%;border-radius:99px}
-  .pop-soldline{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-soft);margin-bottom:12px;font-variant-numeric:tabular-nums}
+  .pop-soldline{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink-soft);margin-bottom:10px;font-variant-numeric:tabular-nums}
 
   .smark{background:#fff;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.4)}
   .rpop{padding:10px 13px 11px;font-size:12.5px}
@@ -541,39 +566,58 @@
     .leaflet-popup{margin-bottom:80px}
   }
 
+  /* clickable dev name in popup */
+  .pop-dev-link{background:none;border:none;padding:0;cursor:pointer;font:inherit;font-size:11.5px;color:rgba(247,245,240,.6);text-align:left;text-decoration:underline dotted rgba(247,245,240,.35);transition:color .14s}
+  .pop-dev-link:hover{color:rgba(247,245,240,.9)}
+
+  /* dev filter active banner */
+  .dev-filter-bar{display:none;position:sticky;top:0;z-index:2;background:#143C2B;color:#F7F5F0;padding:7px 12px;font-size:11.5px;align-items:center;gap:8px}
+  .dev-filter-bar.on{display:flex}
+  .dev-filter-bar button{margin-left:auto;background:none;border:1px solid rgba(247,245,240,.35);border-radius:6px;color:#F7F5F0;font-size:10.5px;padding:2px 8px;cursor:pointer;font:inherit}
+  .dev-filter-bar button:hover{border-color:rgba(247,245,240,.7)}
+
   /* momentum badges (popup) */
   .momentum-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;margin:4px 0 8px}
   .momentum-badge.fire{background:#FEF3C7;color:#92400E;border:1px solid #FCD34D}
   .momentum-badge.up{background:#D1FAE5;color:#065F46;border:1px solid #6EE7B7}
 
   /* share row (popup) */
-  .pop-share{padding:11px 16px 14px;border-top:1px solid rgba(27,42,36,.09)}
-  .pop-share-label{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:8px}
-  .pop-share-row{display:flex;gap:6px}
-  .shr-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 5px 7px;
-    border:1.5px solid rgba(27,42,36,.15);border-radius:9px;background:#fff;cursor:pointer;
+  .pop-contact{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-top:1px solid rgba(27,42,36,.09);gap:8px}
+  .pop-contact-link{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ink);text-decoration:none}
+  .pop-contact-link:hover{color:var(--t1)}
+  .pop-contact-label{font-size:10px;color:var(--ink-soft);opacity:.7}
+  .pop-share{padding:8px 16px 10px;border-top:1px solid rgba(27,42,36,.09);display:flex;align-items:center;gap:6px}
+  .pop-share-row{display:flex;gap:6px;margin-left:auto}
+  .shr-btn{width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+    border:1.5px solid rgba(27,42,36,.15);border-radius:8px;background:#fff;cursor:pointer;
     font:inherit;color:var(--ink);transition:border-color .14s,box-shadow .14s;text-decoration:none;
-    line-height:1.2;text-align:center;-webkit-tap-highlight-color:transparent}
+    flex:none;-webkit-tap-highlight-color:transparent}
   .shr-btn:hover{border-color:rgba(27,42,36,.28);box-shadow:0 2px 8px rgba(27,42,36,.1)}
-  .shr-btn:active{transform:scale(0.97)}
+  .shr-btn:active{transform:scale(0.96)}
   .shr-wa{border-color:rgba(37,211,102,.5) !important}
   .shr-wa:hover{background:#F0FFF7 !important;border-color:#25D366 !important}
-  .shr-label{font-size:10px;font-weight:600;display:block}
+  .shr-label{display:none}
 
   /* brochure preview (popup) */
-  .pop-brochure{position:relative;height:190px;background:#eceae4;border-bottom:1px solid rgba(27,42,36,.09);overflow:hidden;flex-shrink:0}
-  .pop-brochure img{position:absolute;top:0;left:0;width:100%;height:auto;display:none;object-fit:cover}
+  .pop-brochure{position:relative;height:110px;background:#eceae4;border-bottom:1px solid rgba(27,42,36,.09);overflow:hidden;flex-shrink:0}
+  .pop-brochure img{position:absolute;top:0;left:0;width:100%;height:100%;display:none;object-fit:cover}
   .pop-brochure.loaded img{display:block}
   .pop-brochure-spin{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:11px;color:var(--ink-soft);opacity:.7}
   .pop-brochure.loaded .pop-brochure-spin,.pop-brochure.error .pop-brochure-spin{display:none}
   .pop-brochure-spin svg{animation:spin .9s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .pop-brochure-bar{position:absolute;bottom:0;left:0;right:0;padding:28px 13px 9px;
-    background:linear-gradient(transparent,rgba(0,0,0,.5));display:flex;justify-content:space-between;align-items:flex-end}
-  .pop-brochure.error .pop-brochure-bar{position:static;padding:12px 14px;background:none;border-top:1px solid rgba(27,42,36,.08)}
-  .pop-brochure-open{font-size:11px;color:#fff;text-decoration:none;font-weight:600;
-    display:inline-flex;align-items:center;gap:4px;opacity:.92}
-  .pop-brochure.error .pop-brochure-open{color:var(--ink-soft)}
+  .pop-brochure-bar{position:absolute;bottom:10px;right:10px;display:flex;gap:6px}
+  .pop-brochure.error .pop-brochure-bar{position:static;padding:10px 14px;background:none;border-top:1px solid rgba(27,42,36,.08)}
+  .pop-brochure-open{
+    font-size:11px;font-weight:700;color:#fff;text-decoration:none;
+    display:inline-flex;align-items:center;gap:5px;
+    background:rgba(0,0,0,.52);
+    border:1px solid rgba(255,255,255,.18);border-radius:20px;
+    padding:5px 11px 5px 9px;
+    transition:background .15s;
+  }
+  .pop-brochure-open:hover{background:rgba(0,0,0,.72)}
+  .pop-brochure.error .pop-brochure-open{color:var(--ink-soft);background:none;border:1px solid rgba(27,42,36,.15)}
   .pop-brochure-open:hover{opacity:1}
   .pop-brochure-pg{font-size:10px;color:rgba(255,255,255,.6);font-weight:500}
   .pop-brochure.error .pop-brochure-pg{display:none}
@@ -587,10 +631,25 @@
     white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-right:8px}
   .trend-gain{font-size:11px;color:#065F46;font-weight:700;flex:none}
 
-  /* mobile: popup scrolls if content is tall */
-  @media(max-width:560px){
-    .leaflet-popup-content-wrapper{max-height:70vh;overflow-y:auto}
-  }
+  /* toast notification */
+  .toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(10px);
+    background:#143C2B;color:#F7F5F0;font-size:12.5px;padding:9px 18px;border-radius:8px;
+    box-shadow:0 4px 20px rgba(0,0,0,.28);opacity:0;
+    transition:opacity .18s,transform .18s;z-index:3000;pointer-events:none;white-space:nowrap}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* filter badge + empty state */
+  .filter-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;
+    background:rgba(20,60,43,.1);color:var(--t1);margin-left:7px;vertical-align:middle}
+  .empty-state{font-size:12px;color:var(--ink-soft);line-height:1.5;margin:6px 0 2px;display:none}
+
+  /* custom scrollbars — all scrollable surfaces */
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:rgba(27,42,36,.2);border-radius:99px}
+  ::-webkit-scrollbar-thumb:hover{background:rgba(27,42,36,.38)}
+  .leaflet-popup-content-wrapper::-webkit-scrollbar-thumb{background:rgba(27,42,36,.18);border-radius:99px}
+  .leaflet-popup-content-wrapper::-webkit-scrollbar-thumb:hover{background:rgba(27,42,36,.35)}
   /* ---------- demographics district panel ---------- */
   .dem-card{position:absolute;z-index:1050;top:66px;right:16px;width:340px;max-height:calc(100% - 82px);overflow-y:auto;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);display:none;overscroll-behavior:contain}
   .dem-card::-webkit-scrollbar{width:6px}
@@ -641,112 +700,160 @@
     <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 14 6-6 6 6"/></svg>
   </button>
   <div class="panel-body" id="panelBody">
+    <div class="dev-filter-bar" id="devFilterBar">
+      <span id="devFilterLabel">Showing developer</span>
+      <button onclick="clearDevFilter()">✕ Clear</button>
+    </div>
     <div class="chips" id="viewChips" role="group" aria-label="Map view" style="margin-bottom:12px">
       <button class="chip on" data-v="proj">Projects</button>
       <button class="chip" data-v="heat">State heatmap</button>
     </div>
     <div id="projFilters">
 
-    <section class="acc open" data-acc>
-      <button class="acc-head" aria-expanded="true"><span>Base map</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner">
-        <div class="radios" id="baseChips" role="radiogroup" aria-label="Base map style">
-          <label class="radio"><input type="radio" name="base" value="carto" checked><span>Map</span></label>
-          <label class="radio"><input type="radio" name="base" value="osm"><span>OpenStreetMap</span></label>
-          <label class="radio"><input type="radio" name="base" value="gsat"><span>Satellite (Google)</span></label>
-          <label class="radio"><input type="radio" name="base" value="sat"><span>Aerial (Esri)</span></label>
-        </div>
-      </div></div>
-    </section>
-
-    <section class="acc open" data-acc>
-      <button class="acc-head" aria-expanded="true"><span>Search</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner">
+      <!-- Search — always visible -->
+      <div class="panel-search">
         <div class="search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input id="q" type="search" placeholder="Search project or developer…" aria-label="Search project or developer">
         </div>
-      </div></div>
-    </section>
+      </div>
 
-    <section class="acc open" data-acc>
-      <button class="acc-head" aria-expanded="true"><span>Property type</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner">
-        <div class="radios" id="typeChips" role="radiogroup" aria-label="Property type filter">
-          <label class="radio"><input type="radio" name="ptype" value="all" checked><span>All</span></label>
-          <label class="radio"><input type="radio" name="ptype" value="landed"><span>Landed</span></label>
-          <label class="radio"><input type="radio" name="ptype" value="highrise"><span>High-rise</span></label>
+      <!-- Filters -->
+      <div class="sidebar-sec is-first">Filters</div>
+
+      <div class="qf-group">
+        <div class="qf-tag">Property type</div>
+        <div class="chips" id="typeChips" role="group" aria-label="Property type filter">
+          <button class="chip on" data-type="all">All</button>
+          <button class="chip" data-type="landed">Landed</button>
+          <button class="chip" data-type="highrise">High-rise</button>
         </div>
-      </div></div>
-    </section>
+      </div>
 
-    <section class="acc open" data-acc>
-      <button class="acc-head" aria-expanded="true"><span>Status</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner">
-        <div class="radios" id="tenChips" role="radiogroup" aria-label="Status filter">
-          <label class="radio"><input type="radio" name="tenure" value="all" checked><span>All</span></label>
-          <label class="radio"><input type="radio" name="tenure" value="active"><span>Active</span></label>
-          <label class="radio"><input type="radio" name="tenure" value="done"><span>Completed</span></label>
+      <div class="qf-group">
+        <div class="qf-tag">Status</div>
+        <div class="chips" id="tenChips" role="group" aria-label="Status filter">
+          <button class="chip on" data-ten="all">All</button>
+          <button class="chip" data-ten="active">Active</button>
+          <button class="chip" data-ten="done">Completed</button>
         </div>
-      </div></div>
-    </section>
+      </div>
 
-    <section class="acc" data-acc>
-      <button class="acc-head" aria-expanded="false"><span>Rail network</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner">
-        <div class="chips" id="railChips" role="group" aria-label="Rail line toggles"></div>
-        <div class="lhint" style="margin-top:7px">Toggle each layer independently.</div>
-      </div></div>
-    </section>
-
-    <section class="acc" data-acc>
-      <button class="acc-head" aria-expanded="false"><span>Demographics</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner">
-        <div class="chips" role="group" aria-label="Demographics layer">
-          <button class="chip" id="demToggle" disabled>Loading data…</button>
-        </div>
-        <div class="lhint" style="margin-top:6px">Click any district on the map to see income, poverty &amp; population data.</div>
-        <div id="demLegend" style="display:none;margin-top:10px">
-          <div class="dem-leg-swatch">
-            <div style="background:#d7e8e3"></div><div style="background:#9cc9bd"></div>
-            <div style="background:#5ba392"></div><div style="background:#2e7364"></div>
-            <div style="background:#174a40"></div>
+      <section class="acc" data-acc>
+        <button class="acc-head" aria-expanded="false"><span>Price range</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="tier-rows" id="sidebarTiers" role="group" aria-label="Price range filter">
+            <button class="tier-row-btn" data-t="0"><span class="tr-dot" style="background:var(--t1)"></span>Under RM 300k</button>
+            <button class="tier-row-btn" data-t="1"><span class="tr-dot" style="background:var(--t2)"></span>RM 300k – 600k</button>
+            <button class="tier-row-btn" data-t="2"><span class="tr-dot" style="background:var(--t3)"></span>RM 600k – 1M</button>
+            <button class="tier-row-btn" data-t="3"><span class="tr-dot" style="background:var(--t4)"></span>Above RM 1M</button>
           </div>
-          <div class="dem-leg-labels"><span>Lower pop.</span><span>Higher pop.</span></div>
-        </div>
-      </div></div>
-    </section>
+          <div class="lhint" style="margin-top:5px">Dot colors match the map legend. Tap to toggle price bands.</div>
+        </div></div>
+      </section>
 
-    <section class="acc" data-acc>
-      <button class="acc-head" aria-expanded="false"><span>Area project scan</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner">
-        <div class="rt-row"><span>Radius</span>
-          <input type="range" id="rtRadius" min="1" max="20" step="0.5" value="5" aria-label="Scan radius in km">
-          <span class="rt-val" id="rtRadiusVal">5.0 km</span></div>
-        <button class="rt-arm" id="rtArm">📍 Click map to set centre</button>
-        <div class="rt-hint" id="rtHint" style="margin-top:6px">Pick a radius, then click anywhere on the map to scan all projects within that circle.</div>
-      </div></div>
-    </section>
+      <section class="acc" data-acc>
+        <button class="acc-head" aria-expanded="false"><span>Bedrooms</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="chips" id="bedChips" role="group" aria-label="Bedroom filter">
+            <button class="chip on" data-b="all">Any</button>
+            <button class="chip" data-b="1-2">1–2 BR</button>
+            <button class="chip" data-b="3">3 BR</button>
+            <button class="chip" data-b="4+">4+ BR</button>
+          </div>
+        </div></div>
+      </section>
 
-    <section class="acc" data-acc>
-      <button class="acc-head" aria-expanded="false"><span>Nearby amenities</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner">
-        <div class="toggles">
-          <label class="toggle am-school"><span>🎓 Schools</span><input type="checkbox" id="togSchools"><span class="tk"></span></label>
-          <label class="toggle am-super"><span>🛒 Supermarkets</span><input type="checkbox" id="togSupermarkets"><span class="tk"></span></label>
-          <label class="toggle am-hosp"><span>🏥 Hospitals &amp; clinics</span><input type="checkbox" id="togHospitals"><span class="tk"></span></label>
-          <label class="toggle am-mall"><span>🛍️ Shopping malls</span><input type="checkbox" id="togMalls"><span class="tk"></span></label>
-        </div>
-        <div class="lhint" id="amenHint" style="margin-top:7px">Loading amenity data…</div>
-      </div></div>
-    </section>
+      <section class="acc" data-acc>
+        <button class="acc-head" aria-expanded="false"><span>Launch year</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="chips" id="yearChips" role="group" aria-label="Launch year filter" style="flex-wrap:wrap">
+            <button class="chip on" data-y="all">Any</button>
+            <button class="chip" data-y="2021">2021</button>
+            <button class="chip" data-y="2022">2022</button>
+            <button class="chip" data-y="2023">2023</button>
+            <button class="chip" data-y="2024">2024</button>
+            <button class="chip" data-y="2025">2025</button>
+            <button class="chip" data-y="2026">2026</button>
+          </div>
+          <div class="lhint" style="margin-top:6px">Filters by first sale year.</div>
+        </div></div>
+      </section>
 
-    <section class="acc" data-acc id="trendingAcc" style="display:none">
-      <button class="acc-head" aria-expanded="false"><span>Trending this week</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
-      <div class="acc-body"><div class="acc-inner" id="trendingBody">
-        <div class="lhint">Loading…</div>
-      </div></div>
-    </section>
+      <!-- Map Layers -->
+      <div class="sidebar-sec">Map layers</div>
+
+      <section class="acc" data-acc>
+        <button class="acc-head" aria-expanded="false"><span>Base map</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="radios" id="baseChips" role="radiogroup" aria-label="Base map style">
+            <label class="radio"><input type="radio" name="base" value="carto" checked><span>Map</span></label>
+            <label class="radio"><input type="radio" name="base" value="osm"><span>OpenStreetMap</span></label>
+            <label class="radio"><input type="radio" name="base" value="gsat"><span>Satellite (Google)</span></label>
+            <label class="radio"><input type="radio" name="base" value="sat"><span>Aerial (Esri)</span></label>
+          </div>
+        </div></div>
+      </section>
+
+      <section class="acc" data-acc>
+        <button class="acc-head" aria-expanded="false"><span>Rail network</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="chips" id="railChips" role="group" aria-label="Rail line toggles"></div>
+          <div class="lhint" style="margin-top:7px">Toggle each layer independently.</div>
+        </div></div>
+      </section>
+
+      <section class="acc" data-acc>
+        <button class="acc-head" aria-expanded="false"><span>Nearby amenities</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="toggles">
+            <label class="toggle am-school"><span>🎓 Schools</span><input type="checkbox" id="togSchools"><span class="tk"></span></label>
+            <label class="toggle am-super"><span>🛒 Supermarkets</span><input type="checkbox" id="togSupermarkets"><span class="tk"></span></label>
+            <label class="toggle am-hosp"><span>🏥 Hospitals &amp; clinics</span><input type="checkbox" id="togHospitals"><span class="tk"></span></label>
+            <label class="toggle am-mall"><span>🛍️ Shopping malls</span><input type="checkbox" id="togMalls"><span class="tk"></span></label>
+          </div>
+          <div class="lhint" id="amenHint" style="margin-top:7px">Loading amenity data…</div>
+        </div></div>
+      </section>
+
+      <!-- Tools -->
+      <div class="sidebar-sec">Tools</div>
+
+      <section class="acc" data-acc>
+        <button class="acc-head" aria-expanded="false"><span>Demographics</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="chips" role="group" aria-label="Demographics layer">
+            <button class="chip" id="demToggle" disabled>Loading data…</button>
+          </div>
+          <div class="lhint" style="margin-top:6px">Click any district on the map to see income, poverty &amp; population data.</div>
+          <div id="demLegend" style="display:none;margin-top:10px">
+            <div class="dem-leg-swatch">
+              <div style="background:#d7e8e3"></div><div style="background:#9cc9bd"></div>
+              <div style="background:#5ba392"></div><div style="background:#2e7364"></div>
+              <div style="background:#174a40"></div>
+            </div>
+            <div class="dem-leg-labels"><span>Lower pop.</span><span>Higher pop.</span></div>
+          </div>
+        </div></div>
+      </section>
+
+      <section class="acc" data-acc>
+        <button class="acc-head" aria-expanded="false"><span>Area project scan</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="rt-row"><span>Radius</span>
+            <input type="range" id="rtRadius" min="1" max="20" step="0.5" value="5" aria-label="Scan radius in km">
+            <span class="rt-val" id="rtRadiusVal">5.0 km</span></div>
+          <button class="rt-arm" id="rtArm">📍 Click map to set centre</button>
+          <div class="rt-hint" id="rtHint" style="margin-top:6px">Pick a radius, then click anywhere on the map to scan all projects within that circle.</div>
+        </div></div>
+      </section>
+
+      <section class="acc" data-acc id="trendingAcc" style="display:none">
+        <button class="acc-head" aria-expanded="false"><span>Trending this week</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <div class="acc-body"><div class="acc-inner" id="trendingBody">
+          <div class="lhint">Loading…</div>
+        </div></div>
+      </section>
 
     </div>
 
@@ -754,6 +861,7 @@
       <div class="flabel">Shade states by</div>
       <div class="chips" id="metricChips" role="group" aria-label="Heatmap metric">
         <button class="chip on" data-v="n">Projects</button>
+        <button class="chip" data-v="medPsf">Median PSF</button>
         <button class="chip" data-v="takeup">Take-up<span class="lki">🔒</span></button>
         <button class="chip" data-v="medP">Median price<span class="lki">🔒</span></button>
       </div>
@@ -761,8 +869,12 @@
         <div class="ramplbl"><span id="rampMin"></span><span id="rampMax"></span></div></div>
       <div class="lhint" style="margin-top:7px">Click a state for its full statistics.</div>
     </div>
-    <div class="count"><b id="n">0</b> <span id="nlabel">projects shown</span>
-      <br><button class="reset" id="reset">Clear all filters</button>
+    <div class="count"><b id="n">0</b> <span id="nlabel">projects shown</span><span class="filter-badge" id="filterBadge" style="display:none"></span>
+      <div class="empty-state" id="emptyState">No projects match your filters.<br>Try widening your search.</div>
+      <div class="count-btns">
+        <button class="reset" id="reset">Clear filters</button>
+        <button class="btn-near-me" id="nearMe">📍 Near me</button>
+      </div>
     </div>
 
     <div class="ad-slot" id="adSidebar">
@@ -995,21 +1107,58 @@ function nativeShare() {
 }
 
 // ---------- brochure image preview ----------
-const _brochureErrCache = new Set();
-
 function renderBrochure(container){
+  const pid = container.dataset.pid;
   const rawUrl = container.dataset.brochureUrl;
-  if (!rawUrl || container.dataset.brochureLoading) return;
-  if (_brochureErrCache.has(rawUrl)){ container.classList.add('error'); return; }
+  if (!pid || container.dataset.brochureLoading) return;
   container.dataset.brochureLoading = '1';
   const img = container.querySelector('img');
-  img.onload  = () => container.classList.add('loaded');
-  img.onerror = () => { _brochureErrCache.add(rawUrl); container.classList.add('error'); };
-  img.src = '/api/brochure-proxy?url=' + encodeURIComponent(rawUrl) + '&mode=img';
+  img.onload = () => container.classList.add('loaded');
+  img.onerror = () => {
+    if (rawUrl && !img.src.includes('/api/brochure-proxy')) {
+      img.src = '/api/brochure-proxy?url=' + encodeURIComponent(rawUrl) + '&mode=img';
+    } else {
+      container.classList.add('error');
+    }
+  };
+  img.src = `b/${pid}.jpg`;
+}
+
+function parseUnitsCompact(compact){
+  if (!compact) return [];
+  return compact.split('~').map(s => {
+    const [type,beds,area,pmin,pmax,count] = s.split('|');
+    return {type, beds, area:+area, pmin:+pmin, pmax:+pmax, count:+count};
+  }).filter(u => u.type || u.pmin);
+}
+
+function unitBreakdownHTML(compact){
+  const rows = parseUnitsCompact(compact);
+  if (!rows.length) return '';
+  const MAX = 2;
+  const visible = rows.slice(0, MAX);
+  const extra = rows.length - MAX;
+  const html = visible.map(u => {
+    const priceStr = u.pmin ? fmtRM(u.pmin) + (u.pmax > u.pmin ? '–'+fmtRM(u.pmax) : '') : '—';
+    const areaStr = u.area ? (Math.round(u.area * 10.7639)).toLocaleString() + ' ft²' : '—';
+    const bedsStr = u.beds ? u.beds + ' BR' : '';
+    return `<tr>
+      <td style="padding:3px 6px 3px 0;font-size:11px;color:var(--ink)">${esc(u.type)}${bedsStr ? ' · '+bedsStr : ''}</td>
+      <td style="padding:3px 6px;font-size:10.5px;color:var(--ink-soft);white-space:nowrap">${areaStr}</td>
+      <td style="padding:3px 0 3px 6px;font-size:10.5px;font-weight:600;color:var(--ink);text-align:right;white-space:nowrap">${priceStr}</td>
+    </tr>`;
+  }).join('');
+  const moreRow = extra > 0
+    ? `<tr><td colspan="3" style="padding:4px 0;font-size:10.5px;color:var(--ink-soft)">+ ${extra} more unit type${extra>1?'s':''}</td></tr>`
+    : '';
+  return `<div style="margin:0 0 9px">
+    <div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px">Unit breakdown</div>
+    <table style="width:100%;border-collapse:collapse;border-top:1px solid rgba(27,42,36,.1)">${html}${moreRow}</table>
+  </div>`;
 }
 
 function popupHTML(d){
-  const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid,brochureUrl] = d;
+  const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid,brochureUrl,state,bumi,devPhone,bedrooms,unitType,hasOffenses,unitsCompact] = d;
   const tier = tierOf(pmin);
   const pct = units > 0 ? Math.min(100, Math.round(sold/units*100)) : null;
   const statusLabel = ten==='active' ? 'Active' : ten==='done' ? 'Completed' : null;
@@ -1017,7 +1166,6 @@ function popupHTML(d){
   const M2_TO_SQFT = 10.7639;
   const sqftMin = fmin ? Math.round(fmin * M2_TO_SQFT) : 0;
   const sqftMax = fmax ? Math.round(fmax * M2_TO_SQFT) : 0;
-  // psf range: cheapest (min price ÷ largest unit) → dearest (max price ÷ smallest unit)
   let psfStr = '—';
   if (pmin && fmax){
     const psfLo = Math.round(pmin / (fmax * M2_TO_SQFT));
@@ -1036,12 +1184,16 @@ function popupHTML(d){
   const waHref = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
   popupShareData = { name: name, dev: dev, url: shareURL };
   const hasNativeShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
+  const bedroomsLabel = bedrooms ? (bedrooms.includes('–') ? `${bedrooms} BR` : `${bedrooms} BR`) : '';
   const gridCells = [
+    unitType ? `<div><div class="k">Type</div><div class="v">${esc(unitType)}</div></div>` : '',
+    bedroomsLabel ? `<div><div class="k">Bedrooms</div><div class="v">${bedroomsLabel}</div></div>` : '',
+    sqftMin > 0 ? `<div><div class="k">Floor area</div><div class="v">${sqftMin.toLocaleString()}${sqftMax > sqftMin ? `–${sqftMax.toLocaleString()}` : ''} ft²</div></div>` : '',
+    psfStr !== '—' ? `<div><div class="k">Price psf</div><div class="v">${psfStr}</div></div>` : '',
     units > 0 ? `<div><div class="k">Total units</div><div class="v">${units.toLocaleString()}</div></div>` : '',
     units > 0 ? `<div><div class="k">Units sold</div><div class="v">${isPro ? sold.toLocaleString() : '<span style="opacity:.55;font-size:11px">🔒 Pro</span>'}</div></div>` : '',
-    sqftMin > 0 ? `<div><div class="k">Floor area</div><div class="v">${sqftMin.toLocaleString()}–${sqftMax.toLocaleString()} ft²</div></div>` : '',
-    psfStr !== '—' ? `<div><div class="k">Price psf</div><div class="v">${psfStr}</div></div>` : '',
     date ? `<div style="grid-column:1/-1"><div class="k">${dateLabel}</div><div class="v">${esc(date.replace(/^\d{1,2}\s+/, ''))}</div></div>` : '',
+    bumi > 0 ? `<div style="grid-column:1/-1"><div class="k">Bumi quota</div><div class="v">${bumi}% reserved</div></div>` : '',
   ].filter(Boolean).join('');
   return `<div class="pop">
     <div class="pop-hdr">
@@ -1050,10 +1202,15 @@ function popupHTML(d){
         ${statusLabel ? `<span class="tag tag-status">${statusLabel}</span>` : ''}
       </div>
       <h3>${esc(name)}</h3>
-      ${dev ? `<div class="pop-dev">${esc(dev)}</div>` : ''}
+      ${dev ? `<div class="pop-dev"><button class="pop-dev-link" onclick="filterByDev(${JSON.stringify(dev)})" title="Show all projects by this developer">${esc(dev)}</button></div>` : ''}
+      ${state ? `<div class="pop-location">${esc(state)}</div>` : ''}
+      ${hasOffenses ? `<div style="margin-top:6px;padding:7px 9px;border-radius:6px;background:rgba(155,34,38,.08);border:1px solid rgba(155,34,38,.2)">
+        <div style="font-size:9.5px;font-weight:700;color:#9B2226;margin-bottom:3px">⚠ KPKT Violations on Record</div>
+        <div style="font-size:10.5px;color:rgba(247,245,240,.65);line-height:1.45">This developer has regulatory offenses recorded by KPKT (Ministry of Housing). Buyers should exercise additional due diligence before committing.</div>
+      </div>` : ''}
       ${momentumBadge}
     </div>
-    ${brochureUrl ? `<div class="pop-brochure" data-brochure-url="${esc(brochureUrl)}">
+    ${brochureUrl ? `<div class="pop-brochure" data-pid="${esc(pid)}" data-brochure-url="${esc(brochureUrl)}">
       <img alt="Property brochure cover">
       <div class="pop-brochure-spin">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
@@ -1066,13 +1223,21 @@ function popupHTML(d){
     <div class="pop-body">
       <div class="pop-price">${pmin ? `${fmtRM(pmin)}${pmax > pmin ? ` – ${fmtRM(pmax)}` : ''} <span>price range</span>` : '<span style="font-size:13px;font-weight:400">Price not yet available</span>'}</div>
       ${gridCells ? `<div class="pop-grid">${gridCells}</div>` : ''}
+      ${unitsCompact ? unitBreakdownHTML(unitsCompact) : ''}
       ${pct !== null ? (isPro
         ? `<div class="pop-bar"><i style="width:${pct}%;background:${TIER_COLORS[tier]}"></i></div>
            <div class="pop-soldline"><span>Take-up rate</span><span><b>${pct}%</b> sold</span></div>`
         : lockBlock('Take-up rate — Pro')) : ''}
     </div>
+    ${devPhone ? `<div class="pop-contact">
+      <a class="pop-contact-link" href="tel:${esc(devPhone)}">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.24h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.78a16 16 0 0 0 5.55 5.55l.86-.86a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7a2 2 0 0 1 1.72 2.1z"/></svg>
+        ${esc(devPhone)}
+      </a>
+      <span class="pop-contact-label">Developer enquiry</span>
+    </div>` : ''}
     <div class="pop-share">
-      <div class="pop-share-label">Share this project</div>
+      <span style="font-size:9.5px;color:var(--ink-soft);letter-spacing:.04em">Share</span>
       <div class="pop-share-row">
         <a class="shr-btn shr-wa" href="${waHref}" target="_blank" rel="noopener" aria-label="Share on WhatsApp">
           <svg width="20" height="20" viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -1111,7 +1276,7 @@ function parseDate(s){ // "11 Sep 2024" -> Date (or null)
   if (mo===undefined) return null;
   return new Date(+m[3], mo, +m[1]);
 }
-const NOW = new Date(2026, 5, 13);
+const NOW = new Date();
 function monthsSince(d){ return (NOW - d) / (1000*60*60*24*30.44); }
 // haversine km
 function distKm(aLat,aLon,bLat,bLon){
@@ -1386,7 +1551,7 @@ const GUIDES = [
   body:`<p>Freehold means you own the property indefinitely. Leasehold means you hold it for a fixed term — usually 99 years in Malaysia — after which it returns to the state unless the lease is renewed (a process with a premium attached).</p>
   <p>Leasehold isn&rsquo;t automatically bad: prime leasehold addresses can outperform fringe freehold ones. But check two things — the <em>remaining</em> tenure (a 99-year lease from 1995 has lost a third of its clock) and financing: banks lend more cautiously when fewer than ~60 years remain, which also thins out your future resale buyers. Leasehold transfers also need state consent, adding months to any sale.</p>
   <p>Rule of thumb: leasehold should come with a visible discount versus comparable freehold. If it doesn&rsquo;t, you&rsquo;re paying freehold money for leasehold rights.</p>`,
-  actions:[{label:'Show leasehold launches on the map', sub:'Filters the dots to leasehold tenure', fn:'actTenure'}]},
+  actions:[{label:'Browse active launches on the map', sub:'Filters to projects currently on sale', fn:'actTenure'}]},
  {id:'takeup', kicker:'Market signals', title:'Take-up rate: the number nobody advertises',
   teaser:'Sales velocity tells you what the market really thinks.',
   body:`<p>A project&rsquo;s take-up rate — units sold versus units launched — is the most honest opinion poll in property. Buyers vote with deposits. A launch sitting at 30% sold after two years is the market telling you the price, product, or location is off.</p>
@@ -1409,12 +1574,20 @@ const GUIDES = [
   <p><b>5. Price the alternative.</b> Check what completed units nearby trade at on the secondary market. If new-launch psf is far above resale psf, you&rsquo;re prepaying years of appreciation.</p>`,
   actions:[{label:'Explore high-density launches', sub:'Filters the map to high-rise projects', fn:'actHighrise'}]}
 ];
+function afterGuideAct(){
+  gcard.classList.remove('open');
+  syncLegendVisibility();
+  if (window.matchMedia('(max-width:560px)').matches){
+    panelEl.classList.remove('closed');
+    panelBtn.setAttribute('aria-expanded','true');
+  }
+}
 const GUIDE_ACTS = {
-  actTenure(){ setView('proj'); const r=document.querySelector('#tenChips input[value="active"]'); r.checked=true; r.dispatchEvent(new Event('change',{bubbles:true})); openAccordion('Status'); },
-  actTakeup(){ setView('heat'); document.querySelector('#metricChips .chip[data-v="takeup"]').click(); },
-  actHeat(){ setView('heat'); },
-  actRail(){ setView('proj'); const m=document.querySelector('#railChips .chip[data-master]'); if(m && RAIL.some(l=>!railState[l.name])){m.click();} openAccordion('Rail network'); map.flyTo([3.14,101.69],12); },
-  actHighrise(){ setView('proj'); const r=document.querySelector('#typeChips input[value="highrise"]'); r.checked=true; r.dispatchEvent(new Event('change',{bubbles:true})); openAccordion('Property type'); }
+  actTenure(){ setView('proj'); state.ten='active'; document.querySelectorAll('#tenChips .chip').forEach(c=>c.classList.toggle('on',c.dataset.ten==='active')); apply(); afterGuideAct(); },
+  actTakeup(){ setView('heat'); document.querySelector('#metricChips .chip[data-v="takeup"]').click(); afterGuideAct(); },
+  actHeat(){ setView('heat'); afterGuideAct(); },
+  actRail(){ setView('proj'); const m=document.querySelector('#railChips .chip[data-master]'); if(m && RAIL.some(l=>!railState[l.name])){m.click();} openAccordion('Rail network'); map.flyTo([3.14,101.69],12); afterGuideAct(); },
+  actHighrise(){ setView('proj'); state.type='highrise'; document.querySelectorAll('#typeChips .chip').forEach(c=>c.classList.toggle('on',c.dataset.type==='highrise')); apply(); afterGuideAct(); }
 };
 const gcard = document.getElementById('gcard');
 function guideList(){
@@ -1518,7 +1691,7 @@ function buildMarkers() {
         html:`<div class="pmark" style="width:${mSz}px;height:${mSz}px;background:${TIER_COLORS[tier]}"></div>`}),
       title: d[0]
     });
-    m.bindPopup(() => popupHTML(d), {maxWidth:314, autoPanPaddingBottomRight:L.point(12,88)});
+    m.bindPopup(() => popupHTML(d), {maxWidth:314, autoPanPaddingTopLeft:L.point(12,62), autoPanPaddingBottomRight:L.point(12,96)});
     m._d = d; m._tier = tier;
     m._hay = (d[0] + ' ' + d[5]).toLowerCase();
     return m;
@@ -1539,7 +1712,27 @@ function buildMarkers() {
 }
 
 // ---------- filter state ----------
-const state = {q:'', type:'all', ten:'all', tiers:new Set([0,1,2,3])};
+const state = {q:'', type:'all', ten:'all', tiers:new Set([0,1,2,3]), beds:'all', year:'all', devFilter:''};
+
+function bedsMatch(d, beds){
+  if (beds === 'all') return true;
+  const bedsStr = d[19] || '';
+  if (!bedsStr) return beds === 'all';
+  const nums = bedsStr.split('–').map(Number).filter(n => !isNaN(n) && n > 0);
+  if (!nums.length) return beds === 'all';
+  const lo = Math.min(...nums), hi = Math.max(...nums);
+  if (beds === '1-2') return lo <= 2;
+  if (beds === '3')   return lo <= 3 && hi >= 3;
+  if (beds === '4+')  return hi >= 4;
+  return true;
+}
+
+function yearMatch(d, year){
+  if (year === 'all') return true;
+  const cy = d[23];
+  if (!cy) return false;
+  return String(cy) === year;
+}
 
 function apply(){
   const q = state.q;
@@ -1550,6 +1743,9 @@ function apply(){
     if (state.type==='highrise' && d[4]!==0) return false;
     if (state.ten!=='all' && d[3]!==state.ten) return false;
     if (q && !m._hay.includes(q)) return false;
+    if (state.devFilter && d[5] !== state.devFilter) return false;
+    if (!bedsMatch(d, state.beds)) return false;
+    if (!yearMatch(d, state.year)) return false;
     return true;
   });
   cluster.clearLayers();
@@ -1562,13 +1758,38 @@ function apply(){
     if (ok && state.type==='highrise' && d[4]!==0) ok = false;
     if (ok && state.ten!=='all' && d[3]!==state.ten) ok = false;
     if (ok && q && !m._hay.includes(q)) ok = false;
+    if (ok && state.devFilter && d[5] !== state.devFilter) ok = false;
+    if (ok && !bedsMatch(d, state.beds)) ok = false;
+    if (ok && !yearMatch(d, state.year)) ok = false;
     if (ok){ featLayer.addLayer(m); featShown++; } else featLayer.removeLayer(m);
   });
   const totalShown = show.length + featShown;
   document.getElementById('n').textContent = totalShown.toLocaleString();
   document.getElementById('nlabel').textContent = totalShown === 1 ? 'project shown' : 'projects shown';
-  const filtered = state.q || state.type!=='all' || state.ten!=='all' || state.tiers.size<4;
+  const filtered = state.q || state.type!=='all' || state.ten!=='all' || state.tiers.size<4 || state.beds!=='all' || state.year!=='all' || state.devFilter;
   document.getElementById('reset').style.display = filtered ? 'inline' : 'none';
+
+  // filter badge
+  let activeCount = 0;
+  if (state.q) activeCount++;
+  if (state.type !== 'all') activeCount++;
+  if (state.ten !== 'all') activeCount++;
+  if (state.tiers.size < 4) activeCount++;
+  if (state.beds !== 'all') activeCount++;
+  if (state.year !== 'all') activeCount++;
+  if (state.devFilter) activeCount++;
+  const badge = document.getElementById('filterBadge');
+  if (activeCount > 0){
+    badge.textContent = activeCount + (activeCount === 1 ? ' filter' : ' filters');
+    badge.style.display = 'inline';
+  } else {
+    badge.style.display = 'none';
+  }
+
+  // empty state
+  const emptyEl = document.getElementById('emptyState');
+  emptyEl.style.display = (totalShown === 0 && filtered) ? 'block' : 'none';
+
   if (filtered && show.length > 0 && show.length < 200){
     map.fitBounds(L.featureGroup(show).getBounds().pad(0.2), {maxZoom:13});
   }
@@ -1582,38 +1803,116 @@ document.getElementById('q').addEventListener('input', e => {
 });
 
 // radio groups (single-select)
-function wireRadios(id, key){
-  document.getElementById(id).addEventListener('change', e => {
-    if (e.target.name) { state[key] = e.target.value; apply(); }
+function wireChipSingle(id, key, attr){
+  document.getElementById(id).addEventListener('click', e => {
+    const btn = e.target.closest('.chip'); if (!btn) return;
+    document.querySelectorAll(`#${id} .chip`).forEach(c => c.classList.remove('on'));
+    btn.classList.add('on');
+    state[key] = btn.dataset[attr];
+    apply();
   });
 }
-wireRadios('typeChips','type');
-wireRadios('tenChips','ten');
+wireChipSingle('typeChips','type','type');
+wireChipSingle('tenChips','ten','ten');
+
+// shared tier toggle (syncs legend + sidebar)
+function syncTierVisuals(){
+  document.querySelectorAll('.lrow').forEach(r => r.classList.toggle('off', !state.tiers.has(+r.dataset.t)));
+  document.querySelectorAll('#sidebarTiers .tier-row-btn').forEach(b => b.classList.toggle('off', !state.tiers.has(+b.dataset.t)));
+}
+function toggleTier(tnum){
+  if (state.tiers.has(tnum) && state.tiers.size === 1) return; // keep at least one
+  state.tiers.has(tnum) ? state.tiers.delete(tnum) : state.tiers.add(tnum);
+  syncTierVisuals();
+  apply();
+}
 
 // legend tier toggles
 document.querySelectorAll('.lrow').forEach(row => {
-  const toggle = () => {
-    const tnum = +row.dataset.t;
-    if (state.tiers.has(tnum) && state.tiers.size === 1) return; // keep at least one
-    state.tiers.has(tnum) ? state.tiers.delete(tnum) : state.tiers.add(tnum);
-    row.classList.toggle('off', !state.tiers.has(tnum));
-    apply();
-  };
-  row.addEventListener('click', toggle);
-  row.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); }});
+  const fn = () => toggleTier(+row.dataset.t);
+  row.addEventListener('click', fn);
+  row.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); fn(); }});
+});
+
+// sidebar tier toggles
+document.querySelectorAll('#sidebarTiers .tier-row-btn').forEach(btn => {
+  const fn = () => toggleTier(+btn.dataset.t);
+  btn.addEventListener('click', fn);
+  btn.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' '){ e.preventDefault(); fn(); }});
 });
 
 // reset
 document.getElementById('reset').addEventListener('click', () => {
   state.q=''; state.type='all'; state.ten='all'; state.tiers = new Set([0,1,2,3]);
+  state.beds='all'; state.year='all'; state.devFilter='';
   document.getElementById('q').value='';
-  document.querySelector('#typeChips input[value="all"]').checked = true;
-  document.querySelector('#tenChips input[value="all"]').checked = true;
-  document.querySelectorAll('.lrow').forEach(r => r.classList.remove('off'));
+  document.querySelectorAll('#typeChips .chip').forEach(c => c.classList.toggle('on', c.dataset.type==='all'));
+  document.querySelectorAll('#tenChips .chip').forEach(c => c.classList.toggle('on', c.dataset.ten==='all'));
+  syncTierVisuals();
+  document.querySelectorAll('#bedChips .chip').forEach(c => c.classList.toggle('on', c.dataset.b==='all'));
+  document.querySelectorAll('#yearChips .chip').forEach(c => c.classList.toggle('on', c.dataset.y==='all'));
+  document.getElementById('devFilterBar').classList.remove('on');
   apply();
   map.setView([4.2, 109.0], 6);
 });
 
+
+// bedroom filter chips
+document.getElementById('bedChips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  state.beds = b.dataset.b;
+  document.querySelectorAll('#bedChips .chip').forEach(c => c.classList.toggle('on', c===b));
+  apply();
+});
+
+// launch year filter chips
+document.getElementById('yearChips').addEventListener('click', e => {
+  const b = e.target.closest('.chip'); if (!b) return;
+  state.year = b.dataset.y;
+  document.querySelectorAll('#yearChips .chip').forEach(c => c.classList.toggle('on', c===b));
+  apply();
+});
+
+// developer filter (triggered from popup)
+function filterByDev(devName){
+  state.devFilter = devName;
+  document.getElementById('devFilterLabel').textContent = devName;
+  document.getElementById('devFilterBar').classList.add('on');
+  map.closePopup();
+  if (panelEl.classList.contains('closed')){
+    panelEl.classList.remove('closed');
+    panelBtn.setAttribute('aria-expanded','true');
+  }
+  apply();
+}
+function clearDevFilter(){
+  state.devFilter = '';
+  document.getElementById('devFilterBar').classList.remove('on');
+  apply();
+}
+
+// toast
+let _toastTimer;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// near me
+let _nearMeMarker = null;
+document.getElementById('nearMe').addEventListener('click', () => {
+  if (!navigator.geolocation){ showToast('Geolocation not supported on this device.'); return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const {latitude: lat, longitude: lng} = pos.coords;
+    map.flyTo([lat, lng], 14);
+    if (_nearMeMarker) _nearMeMarker.remove();
+    _nearMeMarker = L.circleMarker([lat, lng], {radius:8, color:'#143C2B', weight:2, fillColor:'#C9A227', fillOpacity:1})
+      .addTo(map).bindPopup('Your location').openPopup();
+  }, () => showToast('Could not get your location — please allow location access.'));
+});
 
 // accordion sections
 document.querySelectorAll('.acc[data-acc] .acc-head').forEach(head => {
@@ -1665,9 +1964,10 @@ map.on('popupopen', e => {
   closePanelMobile();
   const el = e.popup && e.popup.getElement ? e.popup.getElement() : null;
   if (!el) return;
-  const brochureEl = el.querySelector('[data-brochure-url]');
+  const brochureEl = el.querySelector('[data-pid]');
   if (brochureEl) renderBrochure(brochureEl);
 });
+
 
 // "View map" button inside the panel collapses it
 document.getElementById('seeMap').addEventListener('click', () => {
@@ -1934,9 +2234,10 @@ function ramp(t){ // #EAF1EE -> #1B4D43
   return `rgb(${c1.map((v,i)=>Math.round(lerp(v,c2[i],t))).join(',')})`;
 }
 const METRICS = {
-  n:     {label:'projects', val:s=>s.n, fmt:v=>v.toLocaleString()},
-  takeup:{label:'take-up',  val:s=>s.units?s.sold/s.units*100:0, fmt:v=>Math.round(v)+'%'},
-  medP:  {label:'median price', val:s=>s.medP, fmt:v=>fmtRM(v)}
+  n:      {label:'projects',     val:s=>s.n,               fmt:v=>v.toLocaleString()},
+  medPsf: {label:'median PSF',   val:s=>s.medPsf||0,       fmt:v=>v?'RM '+v.toLocaleString():'—'},
+  takeup: {label:'take-up',      val:s=>s.units?s.sold/s.units*100:0, fmt:v=>Math.round(v)+'%'},
+  medP:   {label:'median price', val:s=>s.medP,             fmt:v=>fmtRM(v)}
 };
 let metric='n', selLayer=null;
 
@@ -1999,10 +2300,11 @@ function openCard(nm, s, ly){
   const lpct = s.n ? Math.round(s.landed/s.n*100) : 0;
   const apct = s.n ? Math.round((s.active||0)/s.n*100) : 0;
   document.getElementById('scBody').innerHTML = `
-    <div class="bignums">
+    <div class="bignums" style="grid-template-columns:1fr 1fr">
       <div class="bn"><div class="v">${s.n.toLocaleString()}</div><div class="k">Projects</div></div>
-      <div class="bn"><div class="v">${s.units.toLocaleString()}</div><div class="k">Units</div></div>
-      <div class="bn"><div class="v">${fmtRM(s.medP)}</div><div class="k">Median price</div></div>
+      <div class="bn" style="border-top-color:var(--t2)"><div class="v">${s.units.toLocaleString()}</div><div class="k">Units</div></div>
+      <div class="bn" style="border-top-color:var(--t3)"><div class="v">${fmtRM(s.medP)}</div><div class="k">Median price</div></div>
+      <div class="bn" style="border-top-color:var(--accent)"><div class="v">${s.medPsf ? 'RM '+s.medPsf.toLocaleString() : '—'}</div><div class="k">Median PSF</div></div>
     </div>
     <div class="sc-sec">Aggregate take-up</div>
     ${isPro ? `<div class="bar"><i style="width:${tu}%;background:${tu>=60?'#2A9D8F':tu>=40?'#D9A23B':'#E76F51'}"></i></div>
@@ -2052,7 +2354,7 @@ document.getElementById('viewChips').addEventListener('click', e=>{
 });
 document.getElementById('metricChips').addEventListener('click', e=>{
   const b=e.target.closest('.chip'); if (!b) return;
-  if (!isPro && b.dataset.v!=='n'){ openPaywall(); return; }
+  if (!isPro && b.dataset.v!=='n' && b.dataset.v!=='medPsf'){ openPaywall(); return; }
   metric=b.dataset.v;
   document.querySelectorAll('#metricChips .chip').forEach(c=>c.classList.toggle('on', c===b));
   stateLayer.setStyle(styleState); updateRampLabels();
@@ -2525,7 +2827,7 @@ AM_TYPES.forEach(t => {
 });
 
 // Load map data from localStorage cache or network, then build markers
-const MAP_CACHE_KEY = 'teduh_map_v2';
+const MAP_CACHE_KEY = 'teduh_map_v5';
 const MAP_CACHE_TTL = 6 * 3600 * 1000;
 
 // ── Ad loader ────────────────────────────────────────────────────────────────
@@ -2646,5 +2948,6 @@ document.getElementById('nlabel').textContent = 'loading';
   tryBuildTrending();
 })();
 </script>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>

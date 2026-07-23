@@ -5,15 +5,17 @@
  */
 export const config = { maxDuration: 20 };
 
-function extractLargestJpeg(buf) {
-  const jpegs = [];
+const MIN_JPEG_BYTES = 40_000;
+
+function extractCoverJpeg(buf) {
   let i = 0;
   while (i < buf.length - 3) {
     if (buf[i] === 0xFF && buf[i + 1] === 0xD8 && buf[i + 2] === 0xFF) {
       let j = i + 2;
       while (j < buf.length - 1) {
         if (buf[j] === 0xFF && buf[j + 1] === 0xD9) {
-          jpegs.push(buf.slice(i, j + 2));
+          const candidate = buf.slice(i, j + 2);
+          if (candidate.length >= MIN_JPEG_BYTES) return candidate;
           i = j + 2;
           break;
         }
@@ -24,8 +26,7 @@ function extractLargestJpeg(buf) {
       i++;
     }
   }
-  if (!jpegs.length) return null;
-  return jpegs.reduce((a, b) => a.length > b.length ? a : b);
+  return null;
 }
 
 export default async function handler(req, res) {
@@ -47,7 +48,7 @@ export default async function handler(req, res) {
     const buffer = Buffer.from(await upstream.arrayBuffer());
 
     if (mode === 'img') {
-      const jpeg = extractLargestJpeg(buffer);
+      const jpeg = extractCoverJpeg(buffer);
       if (!jpeg) return res.status(404).end();
       res.setHeader('Content-Type', 'image/jpeg');
       res.setHeader('Access-Control-Allow-Origin', '*');
