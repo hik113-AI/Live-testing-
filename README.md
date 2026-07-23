@@ -43,11 +43,13 @@ An interactive map of new private property launches across Peninsular Malaysia (
 
 | File | Description |
 |---|---|
-| `data.json` | Property launches dataset (~2,800 projects) |
-| `transit.json` | Rail network geometry and station coordinates |
-| `amenities.json` | Nearby amenities (schools, hospitals, malls, parks) |
-| `teduh_projects.json` | TEDUH project detail data with unit types, pricing, and developer info |
-| `teduh_history.json` | Rolling 90-day hourly take-up snapshots per project |
+| `map_data.json` | Live TEDUH project data served to the site (2,800+ projects, regenerated after each crawl) |
+| `teduh_projects.json` | Full TEDUH project store (~24k projects, 14MB, updated by crawler) |
+| `teduh_history.json` | Rolling 90-day take-up snapshots per project (for momentum sparklines) |
+| `ads.json` | Ad slot configuration — edit to change ads without touching code |
+| `data.json` | DOSM district demographics GeoJSON (population, income, poverty) |
+| `transit.json` | Rail network geometry and station coordinates (16 lines) |
+| `amenities.json` | Nearby amenities (schools, hospitals, malls, supermarkets) |
 
 ---
 
@@ -104,18 +106,22 @@ python3 fetch_teduh_daily.py --batch 0 --of 4   # batch mode (1 of 4)
 
 ```
 .
-├── index.html                  # Main map application
-├── data.json                   # Property launches dataset
-├── transit.json                # Transit network geometry
+├── index.html                  # Entire frontend (map, UI, filters, AI chat)
+├── map_data.json               # Served to site — generated from teduh_projects.json
+├── teduh_projects.json         # Full TEDUH store (~24k projects)
+├── teduh_history.json          # Rolling take-up history (360 snapshots)
+├── ads.json                    # Ad slot config (edit to swap ads, no code change needed)
+├── data.json                   # DOSM demographics GeoJSON
+├── transit.json                # Rail network geometry
 ├── amenities.json              # Nearby amenities layer
-├── fetch_teduh.py              # TEDUH listing crawler
-├── fetch_teduh_daily.py        # TEDUH detail crawler
-├── teduh_projects.json         # Crawled TEDUH project data
-├── teduh_history.json          # Hourly take-up history
+├── generate_map_data.py        # Converts teduh_projects.json → map_data.json
+├── fetch_teduh.py              # TEDUH listing refresh (batch 0, once/day)
+├── fetch_teduh_daily.py        # TEDUH detail crawler (self-tuning parallel, 4x/day)
+├── CLAUDE.md                   # Architecture reference for Claude Code sessions
 ├── api/
 │   ├── ask.js                  # Claude AI assistant endpoint
 │   ├── geo.js                  # State boundary helpers
 │   └── data.json               # Dataset copy for API function
 └── .github/workflows/
-    └── teduh-daily.yml         # Scheduled crawler workflow
+    └── teduh-daily.yml         # Scheduled crawler (09/15/21/03 MYT)
 ```
