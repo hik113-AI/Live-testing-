@@ -462,7 +462,7 @@
     .ad-top-banner{display:none}
     /* Panel */
     .panel{width:calc(100% - 24px);left:12px;top:12px}
-    .panel-body{max-height:calc(68vh - 70px)}
+    .panel-body{max-height:50vh}
     /* Bottom-sheet panels — full-width, anchored to bottom, rounded top corners */
     .statcard{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
     .rt-report{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
@@ -476,6 +476,34 @@
       width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)}
   }
   @media (prefers-reduced-motion:reduce){*{transition:none !important;animation:none !important}}
+
+  /* tap targets — eliminate 300ms delay on all interactive elements */
+  button,a,[role="button"],label,.radio,.toggle,.chip,.lrow{touch-action:manipulation;-webkit-tap-highlight-color:rgba(0,0,0,0)}
+
+  /* mobile: "View map" sticky button at bottom of panel */
+  .see-map-bar{display:none}
+  @media(max-width:560px){
+    .see-map-bar{
+      position:sticky;bottom:0;display:block;
+      background:linear-gradient(to bottom,transparent,var(--paper) 50%);
+      padding:20px 0 4px;margin-top:6px;
+    }
+    .see-map-btn{
+      display:block;width:100%;padding:12px;
+      background:#143C2B;color:#F7F5F0;border:none;border-radius:10px;
+      font:600 13.5px/1 inherit;cursor:pointer;text-align:center;
+      touch-action:manipulation;
+    }
+    .see-map-btn:active{background:#27443A}
+    /* bigger Leaflet popup close button tap target */
+    a.leaflet-popup-close-button{
+      font-size:22px !important;width:36px !important;height:36px !important;
+      line-height:36px !important;text-align:center !important;
+      top:4px !important;right:4px !important;padding:0 !important;
+    }
+    /* nudge popup up so it clears the AI chat bar at the bottom */
+    .leaflet-popup{margin-bottom:80px}
+  }
 
   /* momentum badges (popup) */
   .momentum-badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;margin:4px 0 8px}
@@ -684,6 +712,10 @@
         </div>
       </div>
       <div class="ad-badge">Sponsored · EdgeProp.my</div>
+    </div>
+
+    <div class="see-map-bar">
+      <button class="see-map-btn" id="seeMap">View map</button>
     </div>
 
   </div>
@@ -1322,14 +1354,17 @@ function featPopupHTML(d, f){
 let markers = [];
 
 function buildMarkers() {
+  const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const mSz = isTouch ? 20 : 14;
+  const mR = mSz / 2;
   markers = DATA.filter(d => !FEATURED[d[0]]).map(d => {
     const tier = tierOf(d[6]);
     const m = L.marker([d[1], d[2]], {
-      icon: L.divIcon({className:'', iconSize:[14,14], iconAnchor:[7,7],
-        html:`<div class="pmark" style="width:14px;height:14px;background:${TIER_COLORS[tier]}"></div>`}),
+      icon: L.divIcon({className:'', iconSize:[mSz,mSz], iconAnchor:[mR,mR],
+        html:`<div class="pmark" style="width:${mSz}px;height:${mSz}px;background:${TIER_COLORS[tier]}"></div>`}),
       title: d[0]
     });
-    m.bindPopup(() => popupHTML(d), {maxWidth:280});
+    m.bindPopup(() => popupHTML(d), {maxWidth:280, autoPanPaddingBottomRight:L.point(12,88)});
     m._d = d; m._tier = tier;
     m._hay = (d[0] + ' ' + d[5]).toLowerCase();
     return m;
@@ -1453,9 +1488,16 @@ panelBtn.addEventListener('click', () => {
   panelBtn.setAttribute('aria-expanded', String(!closed));
 });
 // auto-close panel on mobile so the map is visible on first load
-if (window.matchMedia('(max-width:560px)').matches){
+const isMobileView = window.matchMedia('(max-width:560px)').matches;
+if (isMobileView){
   panelEl.classList.add('closed');
   panelBtn.setAttribute('aria-expanded','false');
+  // Collapse the "Base map" section on mobile — rarely needed, wastes space
+  const basemapAcc = document.querySelector('#projFilters .acc');
+  if (basemapAcc) {
+    basemapAcc.classList.remove('open');
+    basemapAcc.querySelector('.acc-head').setAttribute('aria-expanded','false');
+  }
 }
 // helper: collapse the panel when a bottom-sheet card opens on mobile
 function closePanelMobile(){
@@ -1463,6 +1505,26 @@ function closePanelMobile(){
     panelEl.classList.add('closed');
     panelBtn.setAttribute('aria-expanded','false');
   }
+}
+// auto-close panel whenever any popup opens on mobile
+map.on('popupopen', () => closePanelMobile());
+
+// "View map" button inside the panel collapses it
+document.getElementById('seeMap').addEventListener('click', () => {
+  panelEl.classList.add('closed');
+  panelBtn.setAttribute('aria-expanded','false');
+});
+
+// swipe down anywhere on the panel to collapse it on touch devices
+if ('ontouchstart' in window) {
+  let _ty0 = 0;
+  panelEl.addEventListener('touchstart', e => { _ty0 = e.touches[0].clientY; }, {passive:true});
+  panelEl.addEventListener('touchend', e => {
+    if (e.changedTouches[0].clientY - _ty0 > 55 && !panelEl.classList.contains('closed')) {
+      panelEl.classList.add('closed');
+      panelBtn.setAttribute('aria-expanded','false');
+    }
+  }, {passive:true});
 }
 
 // legend collapse
