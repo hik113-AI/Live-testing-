@@ -69,6 +69,12 @@
   .qf-group{margin-bottom:9px}
   .qf-tag{font-size:9px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;
     color:var(--ink-soft);opacity:.7;margin-bottom:5px}
+  .qf-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+  .qf-lbl{font-size:9px;letter-spacing:.07em;text-transform:uppercase;font-weight:600;
+    color:var(--ink-soft);opacity:.45;white-space:nowrap;width:38px;flex:none}
+  .chips-xs{gap:4px}
+  .chips-xs .chip{font-size:10.5px;padding:3px 10px;border-color:rgba(27,42,36,.13)}
+  .chips-xs .chip.on{background:rgba(27,42,36,.07);border-color:rgba(27,42,36,.5);color:var(--ink);font-weight:600}
 
   .tier-rows{display:flex;flex-direction:column;gap:1px}
   .tier-row-btn{display:flex;align-items:center;gap:9px;padding:5px 7px;border-radius:7px;
@@ -95,10 +101,14 @@
   .acc:last-of-type{border-bottom:none}
   .acc-head{width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;
     justify-content:space-between;gap:10px;padding:12px 2px;font:inherit;color:var(--ink-soft);
-    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;-webkit-tap-highlight-color:transparent;
-    transition:color .15s}
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+    text-align:left;-webkit-tap-highlight-color:transparent;transition:color .15s}
   .acc-head:hover{color:var(--ink)}
   .acc.open > .acc-head{color:var(--t1)}
+  .acc-head-r{display:flex;align-items:center;gap:6px;flex:none}
+  .acc-val{font-size:10px;letter-spacing:0;text-transform:none;font-weight:600;
+    color:var(--t1);opacity:0;white-space:nowrap;transition:opacity .15s}
+  .acc-val.active{opacity:1}
   .acc-head:focus-visible{outline:2px solid var(--t1);outline-offset:2px;border-radius:6px}
   .acc-chev{opacity:.45;transition:transform .2s ease;flex:none}
   .acc:not(.open) .acc-chev{transform:rotate(-90deg)}
@@ -721,26 +731,29 @@
       <!-- Filters -->
       <div class="sidebar-sec is-first">Filters</div>
 
-      <div class="qf-group">
-        <div class="qf-tag">Property type</div>
-        <div class="chips" id="typeChips" role="group" aria-label="Property type filter">
-          <button class="chip on" data-type="all">All</button>
-          <button class="chip" data-type="landed">Landed</button>
-          <button class="chip" data-type="highrise">High-rise</button>
-        </div>
-      </div>
-
-      <div class="qf-group">
-        <div class="qf-tag">Status</div>
-        <div class="chips" id="tenChips" role="group" aria-label="Status filter">
-          <button class="chip on" data-ten="all">All</button>
-          <button class="chip" data-ten="active">Active</button>
-          <button class="chip" data-ten="done">Completed</button>
-        </div>
-      </div>
+      <section class="acc open" data-acc>
+        <button class="acc-head" aria-expanded="true"><span>Type</span><span class="acc-head-r"><span class="acc-val" id="typeVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="chips" id="typeChips" role="group" aria-label="Property type filter">
+            <button class="chip on" data-type="all">All</button>
+            <button class="chip" data-type="landed">Landed</button>
+            <button class="chip" data-type="highrise">High-rise</button>
+          </div>
+        </div></div>
+      </section>
+      <section class="acc open" data-acc>
+        <button class="acc-head" aria-expanded="true"><span>Status</span><span class="acc-head-r"><span class="acc-val" id="tenVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+        <div class="acc-body"><div class="acc-inner">
+          <div class="chips" id="tenChips" role="group" aria-label="Status filter">
+            <button class="chip on" data-ten="all">All</button>
+            <button class="chip" data-ten="active">Active</button>
+            <button class="chip" data-ten="done">Completed</button>
+          </div>
+        </div></div>
+      </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Price range</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span>Price range</span><span class="acc-head-r"><span class="acc-val" id="priceVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="tier-rows" id="sidebarTiers" role="group" aria-label="Price range filter">
             <button class="tier-row-btn" data-t="0"><span class="tr-dot" style="background:var(--t1)"></span>Under RM 300k</button>
@@ -753,7 +766,7 @@
       </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Bedrooms</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span>Bedrooms</span><span class="acc-head-r"><span class="acc-val" id="bedVal">Any</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="chips" id="bedChips" role="group" aria-label="Bedroom filter">
             <button class="chip on" data-b="all">Any</button>
@@ -765,7 +778,7 @@
       </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Launch year</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span>Launch year</span><span class="acc-head-r"><span class="acc-val" id="yearVal">Any</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="chips" id="yearChips" role="group" aria-label="Launch year filter" style="flex-wrap:wrap">
             <button class="chip on" data-y="all">Any</button>
@@ -1803,22 +1816,32 @@ document.getElementById('q').addEventListener('input', e => {
 });
 
 // radio groups (single-select)
-function wireChipSingle(id, key, attr){
+function wireChipSingle(id, key, attr, valId, defaultVal){
   document.getElementById(id).addEventListener('click', e => {
     const btn = e.target.closest('.chip'); if (!btn) return;
     document.querySelectorAll(`#${id} .chip`).forEach(c => c.classList.remove('on'));
     btn.classList.add('on');
     state[key] = btn.dataset[attr];
+    if(valId){
+      const v = document.getElementById(valId);
+      if(v){ v.textContent = btn.textContent.trim(); v.classList.toggle('active', btn.dataset[attr] !== defaultVal); }
+    }
     apply();
   });
 }
-wireChipSingle('typeChips','type','type');
-wireChipSingle('tenChips','ten','ten');
+wireChipSingle('typeChips','type','type','typeVal','all');
+wireChipSingle('tenChips','ten','ten','tenVal','all');
 
 // shared tier toggle (syncs legend + sidebar)
 function syncTierVisuals(){
   document.querySelectorAll('.lrow').forEach(r => r.classList.toggle('off', !state.tiers.has(+r.dataset.t)));
   document.querySelectorAll('#sidebarTiers .tier-row-btn').forEach(b => b.classList.toggle('off', !state.tiers.has(+b.dataset.t)));
+  const pv = document.getElementById('priceVal');
+  if(pv){
+    const isDefault = state.tiers.size === 4;
+    pv.textContent = isDefault ? 'All' : state.tiers.size + ' band' + (state.tiers.size > 1 ? 's' : '');
+    pv.classList.toggle('active', !isDefault);
+  }
 }
 function toggleTier(tnum){
   if (state.tiers.has(tnum) && state.tiers.size === 1) return; // keep at least one
@@ -1852,6 +1875,11 @@ document.getElementById('reset').addEventListener('click', () => {
   document.querySelectorAll('#bedChips .chip').forEach(c => c.classList.toggle('on', c.dataset.b==='all'));
   document.querySelectorAll('#yearChips .chip').forEach(c => c.classList.toggle('on', c.dataset.y==='all'));
   document.getElementById('devFilterBar').classList.remove('on');
+  ['typeVal','tenVal','priceVal','bedVal','yearVal'].forEach(id => {
+    const el=document.getElementById(id); if(!el) return;
+    el.textContent = ['bedVal','yearVal'].includes(id) ? 'Any' : 'All';
+    el.classList.remove('active');
+  });
   apply();
   map.setView([4.2, 109.0], 6);
 });
@@ -1862,6 +1890,7 @@ document.getElementById('bedChips').addEventListener('click', e => {
   const b = e.target.closest('.chip'); if (!b) return;
   state.beds = b.dataset.b;
   document.querySelectorAll('#bedChips .chip').forEach(c => c.classList.toggle('on', c===b));
+  const bv=document.getElementById('bedVal'); if(bv){ bv.textContent=b.textContent.trim(); bv.classList.toggle('active', b.dataset.b !== 'all'); }
   apply();
 });
 
@@ -1870,6 +1899,7 @@ document.getElementById('yearChips').addEventListener('click', e => {
   const b = e.target.closest('.chip'); if (!b) return;
   state.year = b.dataset.y;
   document.querySelectorAll('#yearChips .chip').forEach(c => c.classList.toggle('on', c===b));
+  const yv=document.getElementById('yearVal'); if(yv){ yv.textContent=b.textContent.trim(); yv.classList.toggle('active', b.dataset.y !== 'all'); }
   apply();
 });
 
