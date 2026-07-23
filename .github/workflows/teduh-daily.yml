@@ -61,7 +61,7 @@ jobs:
 
       - name: Extract brochure images for new projects
         continue-on-error: true
-        timeout-minutes: 12
+        timeout-minutes: 55
         run: python3 extract_brochures.py
 
       - name: Commit and push updated data
