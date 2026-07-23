@@ -1,0 +1,17 @@
+{
+  "sidebar": {
+    "type": "direct",
+    "icon": "🏠",
+    "headline": "Find your next home with EdgeProp",
+    "description": "Malaysia's largest new launches database",
+    "url": "https://www.edgeprop.my",
+    "sponsor": "EdgeProp.my"
+  },
+  "top_banner": {
+    "type": "direct",
+    "headline": "Advertise your development to active buyers",
+    "sub": "Premium placement on EdgeProp New Launches",
+    "cta": "Get in touch",
+    "url": "mailto:ads@edgeprop.my"
+  }
+}

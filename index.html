@@ -631,9 +631,9 @@
       <br><button class="reset" id="reset">Clear all filters</button>
     </div>
 
-    <div class="ad-slot">
+    <div class="ad-slot" id="adSidebar">
       <div class="ad-label">Advertisement</div>
-      <div class="ad-unit" role="link" tabindex="0" onclick="void(0)">
+      <div class="ad-unit" role="link" tabindex="0">
         <div class="ad-icon">🏠</div>
         <div class="ad-text">
           <div class="ad-headline">Find your next home with EdgeProp</div>
@@ -646,14 +646,14 @@
   </div>
 </div>
 
-<div class="ad-top-banner" aria-label="Advertisement">
+<div class="ad-top-banner" id="adTopBanner" aria-label="Advertisement">
   <span class="ad-chip">Ad</span>
   <span style="font-size:16px;flex:none">🏗️</span>
   <div>
-    <div class="ad-top-title">Advertise your development to 50,000+ active buyers</div>
+    <div class="ad-top-title">Advertise your development to active buyers</div>
     <div class="ad-top-sub">Premium placement on EdgeProp New Launches</div>
   </div>
-  <button class="ad-top-cta">Learn more</button>
+  <button class="ad-top-cta">Get in touch</button>
 </div>
 
 <div class="statcard" id="sc" role="dialog" aria-label="State statistics">
@@ -2195,6 +2195,70 @@ AM_TYPES.forEach(t => {
 // Load map data from localStorage cache or network, then build markers
 const MAP_CACHE_KEY = 'teduh_map_v1';
 const MAP_CACHE_TTL = 6 * 3600 * 1000;
+
+// ── Ad loader ────────────────────────────────────────────────────────────────
+// ads.json controls all ad content. To swap an ad: edit ads.json — no code change needed.
+// Direct ad: { type:"direct", icon, headline, description, url, sponsor, cta }
+// AdSense:   set adsense_client at top level; slot: { type:"adsense", slot:"ID", format:"auto" }
+// Omit a slot key (or set to null) to hide that ad space.
+(async function loadAds() {
+  let cfg;
+  try { cfg = await fetch('ads.json').then(r => r.json()); }
+  catch(e) {
+    document.querySelectorAll('#adSidebar, #adTopBanner').forEach(el => el.style.display = 'none');
+    return;
+  }
+
+  // Inject AdSense script once if any slot uses it
+  const needsAdSense = ['sidebar','top_banner'].some(k => cfg[k]?.type === 'adsense');
+  if (needsAdSense && cfg.adsense_client) {
+    const s = document.createElement('script');
+    s.async = true; s.crossOrigin = 'anonymous';
+    s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${cfg.adsense_client}`;
+    document.head.appendChild(s);
+  }
+
+  function renderDirect(el, ad) {
+    const unit = el.querySelector('.ad-unit');
+    if (unit && ad.url) {
+      unit.style.cursor = 'pointer';
+      unit.onclick = () => window.open(ad.url, '_blank', 'noopener');
+      unit.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') unit.click(); };
+    }
+    const icon = el.querySelector('.ad-icon');
+    const hl   = el.querySelector('.ad-headline,.ad-top-title');
+    const desc = el.querySelector('.ad-desc,.ad-top-sub');
+    const badge = el.querySelector('.ad-badge');
+    const cta   = el.querySelector('.ad-top-cta');
+    if (icon)  icon.textContent  = ad.icon  || icon.textContent;
+    if (hl)    hl.textContent    = ad.headline || hl.textContent;
+    if (desc)  desc.textContent  = ad.description || ad.sub || desc.textContent;
+    if (badge) badge.textContent = `Sponsored · ${ad.sponsor || ''}`;
+    if (cta) {
+      cta.textContent = ad.cta || 'Learn more';
+      if (ad.url) cta.onclick = () => window.open(ad.url, '_blank', 'noopener');
+    }
+  }
+
+  function renderAdSense(el, ad, client) {
+    el.innerHTML = `<ins class="adsbygoogle" style="display:block"
+      data-ad-client="${client}"
+      data-ad-slot="${ad.slot}"
+      data-ad-format="${ad.format || 'auto'}"
+      data-full-width-responsive="true"></ins>`;
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  }
+
+  [['sidebar','#adSidebar'], ['top_banner','#adTopBanner']].forEach(([key, sel]) => {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    const ad = cfg[key];
+    if (!ad) { el.style.display = 'none'; return; }
+    if (ad.type === 'adsense') renderAdSense(el, ad, cfg.adsense_client || '');
+    else renderDirect(el, ad);
+  });
+})();
+// ─────────────────────────────────────────────────────────────────────────────
 
 document.getElementById('n').textContent = '…';
 document.getElementById('nlabel').textContent = 'loading';
