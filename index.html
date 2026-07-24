@@ -1323,7 +1323,7 @@
       </ul>
       <div class="pw-price">RM99<span>/month · cancel anytime</span></div>
       <div class="pw-actions">
-        <button class="btn-pro" onclick="alert('Connect this button to your payment & login flow (e.g. Stripe + your auth).')">Subscribe to Pro</button>
+        <button class="btn-pro" onclick="unlockDemo()">Unlock Pro</button>
         <button class="pw-demo" onclick="unlockDemo()">Demo: unlock this session</button>
         <button class="pw-x" onclick="closePaywall()">Maybe later</button>
       </div>
@@ -2164,6 +2164,9 @@ function unlockDemo(){
   document.querySelectorAll('#metricChips .lki').forEach(el => el.remove());
   map.closePopup();
   if (window._lastCard) openCard(window._lastCard.nm, window._lastCard.s, window._lastCard.ly);
+  if (document.getElementById('projDetail').classList.contains('open') && _currentDetailProject) {
+    openProjectDetail();
+  }
 }
 
 // ---------------- FEATURED LISTINGS (paid placements) ----------------
