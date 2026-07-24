@@ -64,9 +64,9 @@
   .panel-body::-webkit-scrollbar-track{background:transparent}
 
   /* sidebar section structure */
-  .sidebar-sec{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
-    color:var(--ink-soft);padding:18px 0 7px;margin-top:0;opacity:.65}
-  .sidebar-sec.is-first{padding-top:4px}
+  .sidebar-sec{font-size:10.5px;letter-spacing:.01em;text-transform:none;font-weight:600;
+    color:var(--ink-soft);padding:18px 0 4px;opacity:.5}
+  .sidebar-sec.is-first{padding-top:2px}
   .panel-search{margin-bottom:10px}
   .qf-group{margin-bottom:9px}
   .qf-tag{font-size:9px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;
@@ -101,20 +101,20 @@
   /* ---------- accordion sections ---------- */
   .acc{}
   .acc-head{width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;
-    justify-content:space-between;gap:10px;padding:10px 2px;font:inherit;color:var(--ink-soft);
-    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
-    text-align:left;-webkit-tap-highlight-color:transparent;transition:color .15s}
-  .acc-head:hover{color:var(--ink)}
-  .acc.open > .acc-head{color:var(--t1)}
+    justify-content:space-between;gap:10px;padding:9px 2px;font:inherit;color:var(--ink);
+    font-size:13px;letter-spacing:0;text-transform:none;font-weight:500;
+    text-align:left;-webkit-tap-highlight-color:transparent;transition:color .15s,opacity .15s}
+  .acc-head:hover{opacity:.65}
+  .acc.open > .acc-head{color:var(--t1);font-weight:600;opacity:1}
   .acc-head-r{display:flex;align-items:center;gap:6px;flex:none}
-  .acc-val{font-size:10px;letter-spacing:0;text-transform:none;font-weight:600;
+  .acc-val{font-size:11px;letter-spacing:0;text-transform:none;font-weight:600;
     color:var(--t1);opacity:0;white-space:nowrap;transition:opacity .15s}
   .acc-val.active{opacity:1}
   .acc-head:focus-visible{outline:2px solid var(--t1);outline-offset:2px;border-radius:6px}
-  .acc-chev{opacity:.45;transition:transform .2s ease;flex:none}
+  .acc-chev{opacity:.38;transition:transform .2s ease;flex:none}
   .acc:not(.open) .acc-chev{transform:rotate(-90deg)}
   .acc-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .25s ease,opacity .2s ease;opacity:1}
-  .acc-body > .acc-inner{overflow:hidden;min-height:0;padding-bottom:12px}
+  .acc-body > .acc-inner{overflow:hidden;min-height:0;padding-bottom:14px}
   .acc:not(.open) .acc-body{grid-template-rows:0fr;opacity:0}
   .acc:not(.open) .acc-body > .acc-inner{padding-bottom:0}
 
@@ -158,9 +158,11 @@
   .chip:focus-visible{outline:2px solid var(--t1);outline-offset:2px}
 
   /* view-mode chips: segmented control */
-  #viewChips{background:rgba(27,42,36,.08);border-radius:99px;padding:3px;gap:3px;flex-wrap:nowrap}
-  #viewChips .chip{flex:1;border-color:transparent;background:transparent;color:var(--ink-soft);padding:5px 13px;font-size:12px;text-align:center}
-  #viewChips .chip.on{background:#fff;color:var(--ink);border-color:transparent;box-shadow:0 1px 4px rgba(27,42,36,.14)}
+  #viewChips{background:rgba(27,42,36,.07);border-radius:99px;padding:3px;gap:3px;flex-wrap:nowrap}
+  #viewChips .chip{flex:1;border-color:transparent;background:transparent;color:var(--ink-soft);
+    padding:6px 13px;font-size:12px;font-weight:500;text-align:center;transition:color .14s}
+  #viewChips .chip.on{background:#fff;color:var(--ink);font-weight:600;border-color:transparent;
+    box-shadow:0 1px 6px rgba(27,42,36,.12),0 0 0 1px rgba(27,42,36,.06)}
 
   .count{
     margin-top:14px;padding-top:13px;border-top:1px solid rgba(27,42,36,.12);
