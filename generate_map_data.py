@@ -14,6 +14,7 @@ Run after each detail crawl via GitHub Actions.
 import json
 import re
 import os
+import statistics
 from collections import defaultdict
 
 ACTIVE_STATUSES = {"Lancar", "Lewat", "Sakit"}
@@ -30,15 +31,84 @@ def in_malaysia(lat, lon):
     if 4.00 <= lat <= 7.50 and 115.4 <= lon <= 119.5:  return True  # Sabah
     return False
 
-def clean_coords(raw_lat, raw_lon):
-    """Return (lat, lon) if valid Malaysian coords, trying swap if needed. Returns (None, None) if bad."""
+# ── Land polygon (shapely) — catches offshore coordinates bounding-box misses ──
+
+_MALAYSIA_STRICT = None  # exact land polygon
+_MALAYSIA_LOOSE  = None  # polygon + ~5 km buffer (keeps coastal/reclaimed projects)
+_family_valid: dict = {}  # family prefix -> [(lat, lon)] for sibling correction
+
+try:
+    from shapely.geometry import shape, Point
+    from shapely.ops import unary_union as _union
+    _geo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'malaysia_land.geojson')
+    with open(_geo_path) as _f:
+        _geo_feat = json.load(_f)
+    _base = _union([shape(f['geometry']) for f in _geo_feat['features']])
+    _MALAYSIA_STRICT = _base
+    _MALAYSIA_LOOSE  = _base.buffer(0.05)  # ~5 km
+    _USE_POLYGON = True
+except Exception as _e:
+    _USE_POLYGON = False
+
+
+def _sibling_correct(pid: str, la: float, lo: float):
+    """Return family-median coords when this project is a tight-cluster outlier."""
+    fam = pid.rsplit('-', 1)[0] if '-' in pid else pid
+    siblings = [(sla, slo) for sla, slo in _family_valid.get(fam, [])
+                if not (abs(sla - la) < 1e-4 and abs(slo - lo) < 1e-4)]
+    if len(siblings) < 2:
+        return la, lo
+    s_lats = [s[0] for s in siblings]
+    s_lons = [s[1] for s in siblings]
+    if max(max(s_lats) - min(s_lats), max(s_lons) - min(s_lons)) > 0.03:
+        return la, lo  # siblings spread too wide — not a single-site development
+    med_lat = statistics.median(s_lats)
+    med_lon = statistics.median(s_lons)
+    if abs(la - med_lat) > 0.20 or abs(lo - med_lon) > 0.20:
+        return med_lat, med_lon  # this point is a clear outlier from the cluster
+    return la, lo
+
+
+def clean_coords(raw_lat, raw_lon, pid: str = ''):
+    """Return (lat, lon) if valid Malaysian coords.
+
+    Steps:
+    1. Bounding-box check (in_malaysia), try lat/lon swap if needed.
+    2. If shapely polygon available, check against strict polygon + 5 km buffer.
+       - Strictly on land → accept.
+       - Within 5 km buffer (coastal/reclaimed land) → accept.
+       - Offshore → attempt sibling correction; if corrected to valid location accept,
+         otherwise reject (returns None, None).
+    """
     if not raw_lat or not raw_lon:
         return None, None
-    if in_malaysia(raw_lat, raw_lon):
-        return float(raw_lat), float(raw_lon)
-    if in_malaysia(raw_lon, raw_lat):  # swapped — fix it
-        return float(raw_lon), float(raw_lat)
-    return None, None
+
+    def _validate(la, lo):
+        if not in_malaysia(la, lo):
+            return None, None
+        la, lo = float(la), float(lo)
+        if not _USE_POLYGON:
+            return la, lo
+        from shapely.geometry import Point as _Pt
+        pt = _Pt(lo, la)
+        if _MALAYSIA_STRICT.contains(pt):
+            return la, lo
+        if _MALAYSIA_LOOSE.contains(pt):
+            # Near-coast: try sibling improvement, otherwise keep original
+            cla, clo = _sibling_correct(pid, la, lo)
+            if (cla != la or clo != lo) and _MALAYSIA_STRICT.contains(_Pt(clo, cla)):
+                return cla, clo
+            return la, lo
+        # Offshore: require sibling correction to a valid location
+        cla, clo = _sibling_correct(pid, la, lo)
+        if _MALAYSIA_LOOSE.contains(_Pt(clo, cla)):
+            return cla, clo
+        return None, None
+
+    result = _validate(raw_lat, raw_lon)
+    if result[0] is not None:
+        return result
+    return _validate(raw_lon, raw_lat)  # try swapped
 MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 TIER_THRESHOLDS = [300000, 600000, 1000000]
 
@@ -162,6 +232,21 @@ with open("teduh_projects.json") as f:
 all_projects = raw["projects"]
 print(f"  {len(all_projects)} total projects in file")
 
+# Build family coordinate map for sibling correction (uses all bounding-box-valid coords)
+_fv: dict = defaultdict(list)
+for _p in all_projects:
+    _pid = str(_p.get('id', ''))
+    _fam = _pid.rsplit('-', 1)[0] if '-' in _pid else _pid
+    try:
+        _la, _lo = float(_p['lat']), float(_p['lon'])
+        if in_malaysia(_la, _lo):
+            _fv[_fam].append((_la, _lo))
+    except Exception:
+        pass
+_family_valid.update(_fv)
+if _USE_POLYGON:
+    print(f"  Land polygon active — sibling correction enabled for {len(_family_valid)} families.")
+
 map_projects = []
 skipped_no_coords = 0
 skipped_old = 0
@@ -179,7 +264,7 @@ ss_ty      = defaultdict(lambda: defaultdict(lambda: [0, 0, 0, 0]))
 ss_devunit = defaultdict(lambda: defaultdict(int))
 
 for p in all_projects:
-    lat, lon = clean_coords(p.get("lat"), p.get("lon"))
+    lat, lon = clean_coords(p.get("lat"), p.get("lon"), pid=str(p.get('id', '')))
     if lat is None:
         skipped_no_coords += 1
         continue
