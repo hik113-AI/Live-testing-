@@ -3810,7 +3810,9 @@ function openSavedProject(pid) {
 // ── view helpers ─────────────────────────────────────────────────
 function _showFilterContent() {
   document.getElementById('viewChips').style.display = '';
-  document.getElementById('projFilters').style.display = '';
+  const isHeat = document.querySelector('#viewChips .chip.on')?.dataset.v === 'heat';
+  document.getElementById('projFilters').style.display = isHeat ? 'none' : '';
+  document.getElementById('hmControls').style.display = isHeat ? '' : 'none';
   const count = document.querySelector('.count');
   if (count) count.style.display = '';
   const ad = document.getElementById('adSidebar');
@@ -3821,6 +3823,7 @@ function _showFilterContent() {
 function _hideFilterContent() {
   document.getElementById('viewChips').style.display = 'none';
   document.getElementById('projFilters').style.display = 'none';
+  document.getElementById('hmControls').style.display = 'none';
   const count = document.querySelector('.count');
   if (count) count.style.display = 'none';
   const ad = document.getElementById('adSidebar');
