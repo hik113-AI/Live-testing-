@@ -527,7 +527,7 @@
   .fpop .ctas{display:flex;gap:8px;margin-top:13px}
   .fpop .ctas a{flex:1;text-align:center;padding:10px 6px;border-radius:9px;font-size:12.5px;font-weight:600;text-decoration:none;transition:opacity .14s}
   .fpop .ctas a:hover{opacity:.88}
-  .fpop .cta1{background:#143C2B;color:#F7F5F0;box-shadow:0 2px 8px rgba(20,60,43,.25)}
+  .fpop .cta1{background:linear-gradient(135deg,#2A9D8F 0%,#1e7d72 100%);color:#fff;box-shadow:0 2px 8px rgba(42,157,143,.25)}
   .fpop .cta2{border:1.5px solid #143C2B;color:#143C2B}
   .fpop .legal{font-size:9px;color:var(--ink-soft);opacity:.6;margin-top:10px;line-height:1.45}
   .leaflet-popup-content-wrapper:has(.fpop){border:1.5px solid #C9A227;box-shadow:0 16px 48px rgba(20,60,43,.35)}
@@ -609,11 +609,11 @@
     }
     .see-map-btn{
       display:block;width:100%;padding:12px;
-      background:#143C2B;color:#F7F5F0;border:none;border-radius:10px;
+      background:linear-gradient(135deg,#2A9D8F 0%,#1e7d72 100%);color:#fff;border:none;border-radius:10px;
       font:600 13.5px/1 inherit;cursor:pointer;text-align:center;
-      touch-action:manipulation;
+      touch-action:manipulation;transition:filter .14s;
     }
-    .see-map-btn:active{background:#27443A}
+    .see-map-btn:active{filter:brightness(.92)}
     /* bigger Leaflet popup close button tap target */
     a.leaflet-popup-close-button{
       font-size:22px !important;width:36px !important;height:36px !important;
@@ -797,11 +797,11 @@
     font:13px/1.4 inherit;color:var(--ink);background:#fff;outline:none;
     transition:border-color .18s,box-shadow .18s;-webkit-appearance:none}
   .auth-field input:focus{border-color:var(--t1);box-shadow:0 0 0 3px rgba(42,157,143,.12)}
-  .auth-submit{width:100%;padding:12px;background:#143C2B;color:#F7F5F0;
+  .auth-submit{width:100%;padding:12px;background:linear-gradient(135deg,#2A9D8F 0%,#1e7d72 100%);color:#fff;
     font:700 13px/1 inherit;border:none;border-radius:10px;cursor:pointer;
-    transition:background .15s;margin-top:2px;-webkit-tap-highlight-color:transparent}
-  .auth-submit:hover{background:#1a5038}
-  .auth-submit:disabled{opacity:.45;cursor:not-allowed}
+    transition:filter .15s;margin-top:2px;-webkit-tap-highlight-color:transparent}
+  .auth-submit:hover{filter:brightness(1.1)}
+  .auth-submit:disabled{opacity:.45;cursor:not-allowed;filter:none}
   .auth-divider{display:flex;align-items:center;gap:10px}
   .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(27,42,36,.12)}
   .auth-divider span{font-size:10.5px;color:var(--ink-soft)}
@@ -1524,14 +1524,14 @@ function openProjectDetail() {
       const priceStr = u.pmin ? fmtRM(u.pmin)+(u.pmax>u.pmin?'–'+fmtRM(u.pmax):'') : '—';
       const areaStr = u.area ? Math.round(u.area*10.7639).toLocaleString()+' ft²' : '—';
       const bedsStr = u.beds ? u.beds+' BR' : '';
-      return `<tr>
-        <td style="padding:3px 6px 3px 0;font-size:11px;color:var(--ink)">${esc(u.type)}${bedsStr?' · '+bedsStr:''}</td>
-        <td style="padding:3px 6px;font-size:10.5px;color:var(--ink-soft);white-space:nowrap">${areaStr}</td>
-        <td style="padding:3px 0 3px 6px;font-size:10.5px;font-weight:600;color:var(--ink);text-align:right;white-space:nowrap">${priceStr}</td>
+      return `<tr style="border-bottom:1px solid rgba(27,42,36,.06)">
+        <td style="padding:5px 6px 5px 0;font-size:11px;color:var(--ink)">${esc(u.type)}${bedsStr?' · '+bedsStr:''}</td>
+        <td style="padding:5px 6px;font-size:10.5px;color:var(--ink-soft);white-space:nowrap">${areaStr}</td>
+        <td style="padding:5px 0 5px 6px;font-size:10.5px;font-weight:600;color:var(--ink);text-align:right;white-space:nowrap">${priceStr}</td>
       </tr>`;
     }).join('');
     return `<div style="margin:0 0 9px">
-      <div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px">Unit breakdown</div>
+      <div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px">Unit breakdown</div>
       <table style="width:100%;border-collapse:collapse;border-top:1px solid rgba(27,42,36,.1)">${html}</table>
     </div>`;
   })();
