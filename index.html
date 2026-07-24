@@ -817,6 +817,60 @@
     display:flex;align-items:center;line-height:0;margin-top:1px}
   .wl-rm:hover{opacity:.85}
 
+  /* ── account panel ────────────────────────────────────────────── */
+  .auth-bar-user-btn{background:none;border:none;cursor:pointer;display:flex;align-items:center;
+    gap:8px;flex:1;min-width:0;padding:0;font:inherit;-webkit-tap-highlight-color:transparent;
+    text-align:left;transition:opacity .14s}
+  .auth-bar-user-btn:hover{opacity:.7}
+  .acc-profile{padding:18px 0 15px;text-align:center;border-bottom:1px solid rgba(27,42,36,.09)}
+  .acc-avatar-lg{width:56px;height:56px;border-radius:50%;
+    background:linear-gradient(135deg,#2A9D8F,#1e5040);
+    display:flex;align-items:center;justify-content:center;
+    font:700 21px/1 inherit;color:#fff;margin:0 auto 10px;
+    box-shadow:0 4px 14px rgba(42,157,143,.25)}
+  .acc-email{font-size:13px;font-weight:600;color:var(--ink);margin-bottom:3px}
+  .acc-since{font-size:10px;color:var(--ink-soft)}
+  .acc-section-hd{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+    color:var(--ink-soft);opacity:.65;padding:13px 0 7px;
+    border-top:1px solid rgba(27,42,36,.09);margin-top:4px}
+  .acc-row{display:flex;align-items:center;justify-content:space-between;
+    gap:12px;padding:8px 0;border-bottom:1px solid rgba(27,42,36,.06)}
+  .acc-row:last-child{border-bottom:none}
+  .acc-row-left{flex:1;min-width:0}
+  .acc-row-label{font-size:12.5px;font-weight:600;color:var(--ink)}
+  .acc-row-sub{font-size:10px;color:var(--ink-soft);margin-top:2px;line-height:1.45}
+  .acc-btn{font:600 11px/1 inherit;color:var(--t1);background:none;border:none;
+    cursor:pointer;padding:5px 10px;border-radius:7px;white-space:nowrap;
+    transition:background .14s;-webkit-tap-highlight-color:transparent}
+  .acc-btn:hover{background:rgba(42,157,143,.1)}
+  .acc-btn:disabled{opacity:.45;cursor:not-allowed}
+  .acc-signout{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    padding:11px;margin-top:16px;border-radius:10px;
+    border:1.5px solid rgba(27,42,36,.15);background:#fff;
+    font:600 12.5px/1 inherit;color:var(--ink-soft);cursor:pointer;
+    transition:all .15s;-webkit-tap-highlight-color:transparent}
+  .acc-signout:hover{border-color:#9B2226;color:#9B2226;background:rgba(155,34,38,.04)}
+  /* toggle switch */
+  .tog{position:relative;display:inline-flex;align-items:center;
+    width:36px;height:20px;flex:none;cursor:pointer}
+  .tog input{opacity:0;width:0;height:0;position:absolute;pointer-events:none}
+  .tog-track{position:absolute;inset:0;border-radius:20px;background:rgba(27,42,36,.18);transition:background .18s}
+  .tog input:checked + .tog-track{background:var(--t1)}
+  .tog-thumb{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);transition:transform .18s;pointer-events:none}
+  .tog input:checked ~ .tog-thumb{transform:translateX(16px)}
+  /* per-property alert toggles in watchlist */
+  .wl-alert-row{display:flex;gap:5px;margin-top:6px;flex-wrap:wrap}
+  .wl-atog{display:inline-flex;align-items:center;gap:4px;padding:3px 8px 3px 5px;
+    border-radius:20px;border:1px solid rgba(27,42,36,.12);background:#fff;
+    cursor:pointer;font:500 9.5px/1 inherit;color:var(--ink-soft);
+    transition:all .14s;-webkit-tap-highlight-color:transparent}
+  .wl-atog[data-on="true"]{border-color:rgba(42,157,143,.35);
+    background:rgba(42,157,143,.08);color:var(--t1)}
+  .wl-atog-dot{width:6px;height:6px;border-radius:50%;background:rgba(27,42,36,.2);
+    flex:none;transition:background .14s}
+  .wl-atog[data-on="true"] .wl-atog-dot{background:var(--t1)}
+
   /* compact popup → view details button */
   .pop-view-btn{display:block;width:100%;padding:11px 16px 12px;background:#143C2B;color:#F7F5F0;
     font:600 12.5px/1 inherit;letter-spacing:.04em;text-align:center;
@@ -940,8 +994,10 @@
       <button class="auth-bar-signin" onclick="openAuth()">Sign in</button>
     </div>
     <div id="authBarUser" style="display:none">
-      <div class="auth-bar-avatar" id="authBarAvatar">?</div>
-      <span class="auth-bar-email" id="authBarEmail"></span>
+      <button class="auth-bar-user-btn" onclick="openAccount()" title="Account settings" aria-label="Account settings">
+        <div class="auth-bar-avatar" id="authBarAvatar">?</div>
+        <span class="auth-bar-email" id="authBarEmail"></span>
+      </button>
       <button class="auth-bar-wl" onclick="openWatchlist()">Watchlist<span id="wlCount"></span></button>
       <button class="auth-bar-signout" onclick="doSignOut()" title="Sign out" aria-label="Sign out">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -955,6 +1011,7 @@
     </div>
     <div id="projDetail" class="proj-detail"></div>
     <div id="watchlistView" class="proj-detail"></div>
+    <div id="accountView" class="proj-detail"></div>
     <div class="chips" id="viewChips" role="group" aria-label="Map view" style="margin-bottom:12px">
       <button class="chip on" data-v="proj">Projects</button>
       <button class="chip" data-v="heat">State heatmap</button>
@@ -3462,6 +3519,7 @@ async function signInWithGoogle() {
 async function doSignOut() {
   await _SB.auth.signOut();
   closeWatchlist();
+  closeAccount();
 }
 
 // ── MFA flow ─────────────────────────────────────────────────────
@@ -3596,13 +3654,14 @@ async function openWatchlist() {
   } else {
     const items = rows.map(r => {
       const tier = r.snap_price_min ? tierOf(r.snap_price_min) : 0;
-      const alerts = [r.alert_price && 'Price', r.alert_takeup && 'Take-up', r.alert_status && 'Status'].filter(Boolean);
       return `<div class="wl-item">
         <span class="wl-dot" style="background:${TIER_COLORS[tier]}"></span>
         <div class="wl-info" onclick="openSavedProject('${r.project_id}')">
           <div class="wl-name">${esc(r.project_name || r.project_id)}</div>
           <div class="wl-meta">${r.developer ? esc(r.developer) : ''}${r.state ? ' · '+esc(r.state) : ''}</div>
-          ${alerts.length ? `<div class="wl-chips">${alerts.map(a=>`<span class="wl-chip">📬 ${a}</span>`).join('')}</div>` : ''}
+          <div class="wl-alert-row">
+            ${[['alert_price','Price',r.alert_price],['alert_takeup','Take-up',r.alert_takeup],['alert_status','Status',r.alert_status]].map(([f,label,val])=>`<button class="wl-atog" data-on="${val?'true':'false'}" data-pid="${r.project_id}" data-field="${f}" onclick="event.stopPropagation();toggleAlertPref(this)" title="Alert on ${label} changes"><span class="wl-atog-dot"></span>${label}</button>`).join('')}
+          </div>
         </div>
         <button class="wl-rm" onclick="removeSaved('${r.project_id}',this)" title="Remove" aria-label="Remove">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -3658,6 +3717,163 @@ function openSavedProject(pid) {
   closeWatchlist();
   openProjectDetail();
   map.flyTo([entry[1], entry[2]], 14, { duration: 1.2 });
+}
+
+// ── alert pref toggle (per-property in watchlist) ─────────────────
+async function toggleAlertPref(btn) {
+  if (!_sbUser) return;
+  const pid   = btn.dataset.pid;
+  const field = btn.dataset.field;
+  const next  = btn.dataset.on !== 'true';
+  btn.dataset.on = String(next);
+  await _SB.from('saved_properties')
+    .update({ [field]: next })
+    .eq('user_id', _sbUser.id)
+    .eq('project_id', pid);
+}
+
+// ── account panel ─────────────────────────────────────────────────
+let _acc2FAEnabled = false;
+
+function openAccount() {
+  if (!_sbUser) { openAuth(); return; }
+
+  const email   = _sbUser.email || _sbUser.user_metadata?.full_name || '';
+  const initial = (email[0] || '?').toUpperCase();
+  const created = _sbUser.created_at ? new Date(_sbUser.created_at) : null;
+  const since   = created ? created.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) : '';
+
+  const accEl  = document.getElementById('accountView');
+  const backBtn = `<button class="proj-det-back" onclick="closeAccount()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+    Back to filters
+  </button>`;
+
+  accEl.innerHTML = backBtn + `
+    <div class="acc-profile">
+      <div class="acc-avatar-lg">${esc(initial)}</div>
+      <div class="acc-email">${esc(email)}</div>
+      ${since ? `<div class="acc-since">Member since ${esc(since)}</div>` : ''}
+    </div>
+
+    <div class="acc-section-hd">Security</div>
+
+    <div class="acc-row">
+      <div class="acc-row-left">
+        <div class="acc-row-label">Two-factor authentication</div>
+        <div class="acc-row-sub" id="acc2FASub">Checking…</div>
+      </div>
+      <label class="tog" title="Toggle 2FA">
+        <input type="checkbox" id="acc2FATog" onchange="toggleAccount2FA(this.checked)">
+        <span class="tog-track"></span>
+        <span class="tog-thumb"></span>
+      </label>
+    </div>
+
+    <div class="acc-row">
+      <div class="acc-row-left">
+        <div class="acc-row-label">Password</div>
+        <div class="acc-row-sub">Send a reset link to your email</div>
+      </div>
+      <button class="acc-btn" id="accPwBtn" onclick="doResetPassword(this)">Reset</button>
+    </div>
+
+    <div class="acc-section-hd">Alert preferences</div>
+
+    <div class="acc-row">
+      <div class="acc-row-left">
+        <div class="acc-row-label">Alert email</div>
+        <div class="acc-row-sub">${esc(email)}</div>
+      </div>
+    </div>
+    <p style="font-size:11px;color:var(--ink-soft);line-height:1.55;padding:4px 0 8px">
+      You'll be emailed when saved properties change price, take-up crosses 50% or 80%, or status changes.
+      Manage per-property toggles in your Watchlist.
+    </p>
+
+    <button class="acc-signout" onclick="doSignOut()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Sign out
+    </button>
+  `;
+
+  // async: load 2FA status
+  _SB.auth.mfa.listFactors().then(({ data: factors }) => {
+    _acc2FAEnabled = !!(factors?.totp?.length);
+    const tog = document.getElementById('acc2FATog');
+    const sub = document.getElementById('acc2FASub');
+    if (tog) tog.checked = _acc2FAEnabled;
+    if (sub) sub.textContent = _acc2FAEnabled
+      ? 'Authenticator app enabled'
+      : 'Not enabled — adds extra sign-in protection';
+  }).catch(() => {
+    const sub = document.getElementById('acc2FASub');
+    if (sub) sub.textContent = 'Could not load status';
+  });
+
+  const panelBody = document.getElementById('panelBody');
+  panelBody.querySelectorAll(':scope > *:not(#accountView)').forEach(el => {
+    el._accPrev = el.style.display; el.style.display = 'none';
+  });
+  accEl.classList.add('open');
+  panelBody.scrollTop = 0;
+  if (panelEl.classList.contains('closed')) {
+    panelEl.classList.remove('closed');
+    panelBtn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function closeAccount() {
+  const panelBody = document.getElementById('panelBody');
+  panelBody.querySelectorAll(':scope > *:not(#accountView)').forEach(el => {
+    el.style.display = el._accPrev !== undefined ? el._accPrev : '';
+    delete el._accPrev;
+  });
+  document.getElementById('accountView').classList.remove('open');
+}
+
+async function toggleAccount2FA(enabled) {
+  const sub = document.getElementById('acc2FASub');
+  const tog = document.getElementById('acc2FATog');
+
+  if (enabled) {
+    if (sub) sub.textContent = 'Setting up…';
+    try {
+      const { data, error } = await _SB.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Authenticator' });
+      if (error || !data?.totp) throw error || new Error('enroll failed');
+      _mfaSetupFactorId = data.id;
+      closeAccount();
+      document.getElementById('mfaQR').src = data.totp.qr_code;
+      document.getElementById('mfaSecret').textContent = 'Or enter manually: ' + data.totp.secret;
+      document.getElementById('mfaSetupCode').value = '';
+      document.getElementById('authOverlay').classList.add('open');
+      _showAuthView('mfa-setup');
+      setTimeout(() => document.getElementById('mfaSetupCode').focus(), 80);
+    } catch {
+      if (sub) sub.textContent = 'Setup failed — try again.';
+      if (tog) tog.checked = false;
+    }
+  } else {
+    if (sub) sub.textContent = 'Disabling…';
+    try {
+      const { data: factors } = await _SB.auth.mfa.listFactors();
+      await Promise.all((factors?.totp || []).map(f => _SB.auth.mfa.unenroll({ factorId: f.id })));
+      _acc2FAEnabled = false;
+      if (sub) sub.textContent = 'Not enabled — adds extra sign-in protection';
+    } catch {
+      if (sub) sub.textContent = 'Failed to disable — try again.';
+      if (tog) tog.checked = true;
+    }
+  }
+}
+
+async function doResetPassword(btn) {
+  if (!_sbUser?.email) return;
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const { error } = await _SB.auth.resetPasswordForEmail(_sbUser.email, { redirectTo: location.origin });
+  btn.textContent = error ? 'Failed' : 'Sent ✓';
+  setTimeout(() => { btn.textContent = 'Reset'; btn.disabled = false; }, 3500);
 }
 
 </script>
