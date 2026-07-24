@@ -2936,6 +2936,7 @@ const chatHistory = [];
 function botOpen(){
   botWin.classList.add('open');
   botHead.setAttribute('aria-expanded', 'true');
+  closePanelMobile();
   if (!botLog.dataset.greeted){
     botSay('bot', `<div class="ms-intro">Hi! Ask me about the ${DATA.length.toLocaleString()} new launches on this map — by price, tenure, type, size, take-up, or area. Try a suggestion below or type your own.</div>`);
     botLog.dataset.greeted = '1';
