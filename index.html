@@ -1441,9 +1441,6 @@ let _currentDetailProject = null;
 function openProjectDetail() {
   const d = _currentDetailProject;
   if (!d) return;
-  // Ensure watchlist/account views are fully closed before saving display state
-  closeWatchlist();
-  closeAccount();
   const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid,brochureUrl,state,bumi,devPhone,bedrooms,unitType,hasOffenses,unitsCompact] = d;
   const tier = tierOf(pmin);
   const pct = units > 0 ? Math.min(100, Math.round(sold/units*100)) : null;
@@ -1595,11 +1592,9 @@ function openProjectDetail() {
     }
   }
 
-  const panelBody = document.getElementById('panelBody');
-  panelBody.querySelectorAll(':scope > *:not(#projDetail)').forEach(el => {
-    el._prevDisplay = el.style.display;
-    el.style.display = 'none';
-  });
+  _hideFilterContent();
+  document.getElementById('watchlistView').classList.remove('open');
+  document.getElementById('accountView').classList.remove('open');
   detailEl.classList.add('open');
   updateSaveButtonState();
 
@@ -1608,17 +1603,13 @@ function openProjectDetail() {
     panelBtn.setAttribute('aria-expanded', 'true');
   }
   map.closePopup();
-  panelBody.scrollTop = 0;
+  document.getElementById('panelBody').scrollTop = 0;
 }
 
 function closeProjectDetail() {
-  const panelBody = document.getElementById('panelBody');
-  panelBody.querySelectorAll(':scope > *:not(#projDetail)').forEach(el => {
-    el.style.display = el._prevDisplay !== undefined ? el._prevDisplay : '';
-    delete el._prevDisplay;
-  });
   document.getElementById('projDetail').classList.remove('open');
-  panelBody.scrollTop = 0;
+  _showFilterContent();
+  document.getElementById('panelBody').scrollTop = 0;
 }
 
 // ---------- brochure image preview ----------
@@ -3692,12 +3683,11 @@ async function openWatchlist() {
       </div>`;
   }
 
-  const panelBody = document.getElementById('panelBody');
-  panelBody.querySelectorAll(':scope > *:not(#watchlistView)').forEach(el => {
-    el._wlPrev = el.style.display; el.style.display = 'none';
-  });
+  _hideFilterContent();
+  document.getElementById('projDetail').classList.remove('open');
+  document.getElementById('accountView').classList.remove('open');
   wlEl.classList.add('open');
-  panelBody.scrollTop = 0;
+  document.getElementById('panelBody').scrollTop = 0;
   if (panelEl.classList.contains('closed')) {
     panelEl.classList.remove('closed');
     panelBtn.setAttribute('aria-expanded', 'true');
@@ -3705,12 +3695,8 @@ async function openWatchlist() {
 }
 
 function closeWatchlist() {
-  const panelBody = document.getElementById('panelBody');
-  panelBody.querySelectorAll(':scope > *:not(#watchlistView)').forEach(el => {
-    el.style.display = el._wlPrev !== undefined ? el._wlPrev : '';
-    delete el._wlPrev;
-  });
   document.getElementById('watchlistView').classList.remove('open');
+  _showFilterContent();
 }
 
 async function removeSaved(pid, btn) {
@@ -3731,6 +3717,16 @@ function openSavedProject(pid) {
   closeWatchlist();
   openProjectDetail();
   map.flyTo([entry[1], entry[2]], 14, { duration: 1.2 });
+}
+
+// ── view helpers ─────────────────────────────────────────────────
+function _showFilterContent() {
+  document.getElementById('viewChips').style.display = '';
+  document.getElementById('projFilters').style.display = '';
+}
+function _hideFilterContent() {
+  document.getElementById('viewChips').style.display = 'none';
+  document.getElementById('projFilters').style.display = 'none';
 }
 
 // ── alert pref toggle (per-property in watchlist) ─────────────────
@@ -3825,12 +3821,11 @@ function openAccount() {
     if (sub) sub.textContent = 'Could not load status';
   });
 
-  const panelBody = document.getElementById('panelBody');
-  panelBody.querySelectorAll(':scope > *:not(#accountView)').forEach(el => {
-    el._accPrev = el.style.display; el.style.display = 'none';
-  });
+  _hideFilterContent();
+  document.getElementById('projDetail').classList.remove('open');
+  document.getElementById('watchlistView').classList.remove('open');
   accEl.classList.add('open');
-  panelBody.scrollTop = 0;
+  document.getElementById('panelBody').scrollTop = 0;
   if (panelEl.classList.contains('closed')) {
     panelEl.classList.remove('closed');
     panelBtn.setAttribute('aria-expanded', 'true');
@@ -3838,12 +3833,8 @@ function openAccount() {
 }
 
 function closeAccount() {
-  const panelBody = document.getElementById('panelBody');
-  panelBody.querySelectorAll(':scope > *:not(#accountView)').forEach(el => {
-    el.style.display = el._accPrev !== undefined ? el._accPrev : '';
-    delete el._accPrev;
-  });
   document.getElementById('accountView').classList.remove('open');
+  _showFilterContent();
 }
 
 async function toggleAccount2FA(enabled) {
