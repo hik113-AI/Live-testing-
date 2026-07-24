@@ -37,8 +37,10 @@ _MALAYSIA_STRICT = None  # exact land polygon
 _MALAYSIA_LOOSE  = None  # polygon + ~5 km buffer (keeps coastal/reclaimed projects)
 _family_valid: dict = {}  # family prefix -> [(lat, lon)] for sibling correction
 
+_Pt = None  # shapely Point class, assigned below if available
+
 try:
-    from shapely.geometry import shape, Point
+    from shapely.geometry import shape, Point as _Pt
     from shapely.ops import unary_union as _union
     _geo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'malaysia_land.geojson')
     with open(_geo_path) as _f:
@@ -49,6 +51,29 @@ try:
     _USE_POLYGON = True
 except Exception as _e:
     _USE_POLYGON = False
+
+
+def _is_placeholder(la: float, lo: float) -> bool:
+    """True when both coordinates are whole-number integers — a classic TEDUH default."""
+    return la == round(la) and lo == round(lo)
+
+
+def _sibling_snap(pid: str) -> tuple | None:
+    """Return tight sibling cluster median for placeholder correction.
+
+    Ignores other placeholder (integer) entries so they don't corrupt the median.
+    Returns None if no tight cluster can be found.
+    """
+    fam = pid.rsplit('-', 1)[0] if '-' in pid else pid
+    siblings = [(la, lo) for la, lo in _family_valid.get(fam, [])
+                if not _is_placeholder(la, lo)]
+    if len(siblings) < 2:
+        return None
+    s_lats = [s[0] for s in siblings]
+    s_lons = [s[1] for s in siblings]
+    if max(max(s_lats) - min(s_lats), max(s_lons) - min(s_lons)) > 0.03:
+        return None
+    return statistics.median(s_lats), statistics.median(s_lons)
 
 
 def _sibling_correct(pid: str, la: float, lo: float):
@@ -73,14 +98,30 @@ def clean_coords(raw_lat, raw_lon, pid: str = ''):
     """Return (lat, lon) if valid Malaysian coords.
 
     Steps:
-    1. Bounding-box check (in_malaysia), try lat/lon swap if needed.
-    2. If shapely polygon available, check against strict polygon + 5 km buffer.
+    1. Reject obvious placeholder coordinates (both integers): attempt sibling snap,
+       otherwise discard.
+    2. Bounding-box check (in_malaysia), try lat/lon swap if needed.
+    3. If shapely polygon available, check against strict polygon + 5 km buffer.
        - Strictly on land → accept.
        - Within 5 km buffer (coastal/reclaimed land) → accept.
        - Offshore → attempt sibling correction; if corrected to valid location accept,
          otherwise reject (returns None, None).
     """
     if not raw_lat or not raw_lon:
+        return None, None
+    try:
+        la_f, lo_f = float(raw_lat), float(raw_lon)
+    except (TypeError, ValueError):
+        return None, None
+
+    # Step 1: whole-number placeholder — skip polygon, go straight to sibling snap
+    if _is_placeholder(la_f, lo_f):
+        snap = _sibling_snap(pid)
+        if snap:
+            cla, clo = snap
+            if in_malaysia(cla, clo):
+                if not _USE_POLYGON or _MALAYSIA_LOOSE.contains(_Pt(clo, cla)):
+                    return cla, clo
         return None, None
 
     def _validate(la, lo):
@@ -89,7 +130,6 @@ def clean_coords(raw_lat, raw_lon, pid: str = ''):
         la, lo = float(la), float(lo)
         if not _USE_POLYGON:
             return la, lo
-        from shapely.geometry import Point as _Pt
         pt = _Pt(lo, la)
         if _MALAYSIA_STRICT.contains(pt):
             return la, lo
@@ -105,10 +145,10 @@ def clean_coords(raw_lat, raw_lon, pid: str = ''):
             return cla, clo
         return None, None
 
-    result = _validate(raw_lat, raw_lon)
+    result = _validate(la_f, lo_f)
     if result[0] is not None:
         return result
-    return _validate(raw_lon, raw_lat)  # try swapped
+    return _validate(lo_f, la_f)  # try swapped
 MONTH_ABBR = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
 TIER_THRESHOLDS = [300000, 600000, 1000000]
 
