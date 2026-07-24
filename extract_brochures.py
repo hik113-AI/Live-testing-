@@ -1,12 +1,12 @@
 """
 extract_brochures.py — downloads brochure PDFs from hims.kpkt.gov.my,
-picks the best embedded JPEG (scored by aspect ratio to prefer facade/hero
-shots over floor plans), compresses to ≤90KB, and saves to b/{id}.jpg.
+picks the best embedded JPEG using Claude Vision (Haiku), compresses to
+≤90KB, and saves to b/{id}.jpg.
 
-Run once to bulk-populate, then 4x daily by GitHub Actions for new projects.
-Images are served directly as static files — no proxy, no per-user PDF download.
+Run automatically 4x daily by GitHub Actions for new projects.
+Pass --reextract to reprocess all existing images (e.g. after algorithm update).
 """
-import json, os, io, time, sys, urllib.request
+import json, os, io, time, sys, base64, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
@@ -15,14 +15,22 @@ except ImportError:
     print("Pillow not installed — run: pip3 install Pillow")
     sys.exit(1)
 
+try:
+    import anthropic
+    _claude = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
+    USE_CLAUDE = bool(os.environ.get("ANTHROPIC_API_KEY"))
+except ImportError:
+    _claude = None
+    USE_CLAUDE = False
+
 OUTDIR         = "b"
-MAX_W          = 900      # px — enough for a 190px-tall popup preview
+MAX_W          = 900      # px
 QUALITY        = 68       # JPEG quality target
-MAX_SIZE       = 90_000   # bytes — re-compress if still over this
+MAX_SIZE       = 90_000   # bytes
 WORKERS        = 12
 DELAY          = 0.15     # seconds between requests per worker
 MIN_JPEG_BYTES = 40_000   # skip logos / thumbnails
-MAX_CANDIDATES = 8        # stop scanning after collecting this many large JPEGs
+MAX_CANDIDATES = 8
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Chrome/120",
@@ -30,12 +38,12 @@ HEADERS = {
 }
 
 os.makedirs(OUTDIR, exist_ok=True)
+REEXTRACT = "--reextract" in sys.argv
 
 
-def score_jpeg(jpeg_bytes: bytes) -> float:
-    """Score a JPEG by how likely it is to be a property photo/render.
-    Combines aspect ratio (landscape = good) with photo-likeness (smooth
-    gradients = good, text-heavy flyer = bad)."""
+# ── heuristic scorer (fallback when Claude is unavailable) ────────────────
+
+def _heuristic_score(jpeg_bytes: bytes, position: int, total: int) -> float:
     try:
         img = Image.open(io.BytesIO(jpeg_bytes))
         w, h = img.size
@@ -46,17 +54,14 @@ def score_jpeg(jpeg_bytes: bytes) -> float:
     ratio = w / h
 
     if 1.2 <= ratio <= 2.5:
-        ar_score = 1.0   # ideal landscape hero / facade
+        ar_score = 1.0
     elif 1.0 <= ratio < 1.2:
-        ar_score = 0.6   # nearly square
+        ar_score = 0.6
     elif ratio > 2.5:
-        ar_score = 0.25  # very wide: site plan / location map
+        ar_score = 0.25
     else:
-        ar_score = 0.1   # portrait: floor plan
+        ar_score = 0.1
 
-    # Photo-likeness: count edges at small scale.
-    # Property photos have smooth gradients → low edge density.
-    # Marketing flyers with text overlays → high edge density.
     try:
         small = img.resize((64, 32), Image.LANCZOS).convert("L")
         pix = small.load()
@@ -64,22 +69,70 @@ def score_jpeg(jpeg_bytes: bytes) -> float:
             1 for y in range(32) for x in range(63)
             if abs(pix[x, y] - pix[x + 1, y]) > 25
         )
-        edge_density = edges / (64 * 32)
-        # Property render: ~0.1–0.2  |  Text-heavy flyer: ~0.35+
-        photo_score = max(0.0, 1.0 - edge_density * 3)
+        photo_score = max(0.0, 1.0 - (edges / (64 * 32)) * 3)
     except Exception:
         photo_score = 0.5
 
-    return ar_score * 0.6 + photo_score * 0.4
+    pos_bonus = (1 - position / max(1, total)) * 0.3
+    return ar_score * 0.6 + photo_score * 0.4 + pos_bonus
 
+
+def _pick_heuristic(candidates: list[bytes]) -> bytes:
+    return max(
+        enumerate(candidates),
+        key=lambda t: _heuristic_score(t[1], t[0], len(candidates)),
+    )[1]
+
+
+# ── Claude Vision picker ──────────────────────────────────────────────────
+
+def _pick_with_claude(candidates: list[bytes]) -> bytes:
+    """Ask Claude Haiku which candidate is the best property thumbnail."""
+    if len(candidates) == 1:
+        return candidates[0]
+
+    content = []
+    for i, b in enumerate(candidates, 1):
+        content.append({
+            "type": "text",
+            "text": f"Image {i}:"
+        })
+        content.append({
+            "type": "image",
+            "source": {
+                "type": "base64",
+                "media_type": "image/jpeg",
+                "data": base64.standard_b64encode(b).decode(),
+            },
+        })
+
+    content.append({
+        "type": "text",
+        "text": (
+            f"These {len(candidates)} images were extracted from a Malaysian property "
+            "brochure PDF. Reply with ONLY a single number — the index (1 to "
+            f"{len(candidates)}) of the image most suitable as a property listing "
+            "thumbnail. Prefer exterior renders or photos of the building. "
+            "Reject floor plans, location maps, and marketing flyers with price "
+            "text or bullet points overlaid on the image."
+        ),
+    })
+
+    try:
+        resp = _claude.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=8,
+            messages=[{"role": "user", "content": content}],
+        )
+        idx = int(resp.content[0].text.strip()) - 1
+        return candidates[max(0, min(idx, len(candidates) - 1))]
+    except Exception:
+        return _pick_heuristic(candidates)
+
+
+# ── JPEG extraction from raw PDF bytes ────────────────────────────────────
 
 def extract_cover_jpeg(data: bytes) -> bytes | None:
-    """Collect up to MAX_CANDIDATES embedded JPEGs ≥ MIN_JPEG_BYTES and return
-    the one most likely to be the property cover photo.
-
-    Scoring: aspect ratio (60%) + photo-likeness/smoothness (40%).
-    Position in file acts as tiebreaker — earlier images tend to be clean
-    property renders; later ones tend to be composite marketing-flyer pages."""
     candidates: list[bytes] = []
     i = 0
     while i < len(data) - 3 and len(candidates) < MAX_CANDIDATES:
@@ -94,21 +147,18 @@ def extract_cover_jpeg(data: bytes) -> bytes | None:
                     break
                 j += 1
             else:
-                i += 1  # no end marker — skip start byte and keep scanning
+                i += 1
         else:
             i += 1
+
     if not candidates:
         return None
-    n = len(candidates)
-    # Earlier position bonus (0→0.3) so clean cover image beats a larger
-    # composite flyer page that appears later in the PDF stream.
-    return max(
-        candidates,
-        key=lambda b: (
-            score_jpeg(b) + (1 - candidates.index(b) / max(1, n)) * 0.3,
-        ),
-    )
+    if USE_CLAUDE:
+        return _pick_with_claude(candidates)
+    return _pick_heuristic(candidates)
 
+
+# ── compression ───────────────────────────────────────────────────────────
 
 def compress(jpeg_bytes: bytes) -> bytes:
     img = Image.open(io.BytesIO(jpeg_bytes)).convert("RGB")
@@ -125,11 +175,9 @@ def compress(jpeg_bytes: bytes) -> bytes:
     return result
 
 
-REEXTRACT = "--reextract" in sys.argv
-
+# ── per-project processing ────────────────────────────────────────────────
 
 def process(project_id: str, url: str) -> tuple[str, str]:
-    """Returns (project_id, 'ok'|'skip'|'error:<reason>')."""
     out_path = os.path.join(OUTDIR, f"{project_id}.jpg")
     if os.path.exists(out_path) and not REEXTRACT:
         return project_id, "skip"
@@ -153,11 +201,17 @@ def process(project_id: str, url: str) -> tuple[str, str]:
         return project_id, f"error:compress:{e}"
 
 
+# ── main ──────────────────────────────────────────────────────────────────
+
 print("Loading teduh_projects.json …")
 with open("teduh_projects.json") as f:
     raw = json.load(f)
 
-# Build work list: projects with a brochure URL that we haven't extracted yet
+mode = "Claude Vision" if USE_CLAUDE else "heuristic (no API key)"
+print(f"  Image selection: {mode}")
+if REEXTRACT:
+    print("  Mode: --reextract (overwriting existing images)")
+
 work = []
 for p in raw["projects"]:
     pid = p.get("id")
@@ -177,7 +231,10 @@ if not work:
     sys.exit(0)
 
 ok = err = 0
-with ThreadPoolExecutor(max_workers=WORKERS) as pool:
+# Claude Vision calls are sequential per project so use fewer workers to
+# avoid hammering the Anthropic API; heuristic mode can use full concurrency.
+workers = 4 if USE_CLAUDE else WORKERS
+with ThreadPoolExecutor(max_workers=workers) as pool:
     futures = {pool.submit(process, pid, url): pid for pid, url in work}
     for i, fut in enumerate(as_completed(futures), 1):
         pid, status = fut.result()

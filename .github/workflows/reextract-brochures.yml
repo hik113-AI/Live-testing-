@@ -1,0 +1,41 @@
+name: Re-extract all brochure images
+
+# Triggered manually from the GitHub Actions tab.
+# Use this when the image selection algorithm has been updated and you want
+# to reprocess all existing b/ images — no local machine needed.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  reextract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360   # up to 6h for ~2,700 projects via Claude Vision
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: requirements.txt
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt --quiet
+
+      - name: Re-extract all brochure images (Claude Vision)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python3 extract_brochures.py --reextract
+
+      - name: Commit updated images
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add b/
+          git diff --cached --quiet || git commit -m "chore: re-extract brochure images with Claude Vision"
+          git pull --rebase && git push
