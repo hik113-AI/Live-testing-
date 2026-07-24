@@ -307,6 +307,8 @@
   .pop-hdr .pop-dev{font-size:11.5px;color:rgba(247,245,240,.6)}
   .pop-hdr .pop-location{font-size:10.5px;color:rgba(247,245,240,.45);margin-top:2px;letter-spacing:.02em}
   .pop-body{padding:12px 16px 0}
+  /* in the detail panel, lift price/specs section onto a white card */
+  #projDetail .pop-body{background:#fff;border-radius:10px;padding:12px 14px 14px;margin:0 0 8px}
   .pop-price-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);opacity:.65;margin-bottom:3px}
   .pop-price{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1.1;margin-bottom:10px}
   .pop-price .pop-price-to{font-size:14px;font-weight:500;color:var(--ink-soft);margin-left:2px}
@@ -421,8 +423,8 @@
   .bot-input{flex:none;display:flex;gap:8px;padding:10px 12px;border-top:1px solid rgba(27,42,36,.1)}
   .bot-input input{flex:1;border:1.5px solid rgba(27,42,36,.18);border-radius:10px;padding:9px 12px;font-size:13px;font-family:inherit;outline:none}
   .bot-input input:focus{border-color:var(--ink-soft)}
-  .bot-input button{background:#143C2B;color:#F7F5F0;border:none;border-radius:10px;padding:0 15px;font-size:13px;font-weight:600;cursor:pointer}
-  .bot-input button:hover{background:#27443A}
+  .bot-input button{background:linear-gradient(135deg,#2A9D8F 0%,#1e7d72 100%);color:#fff;border:none;border-radius:10px;padding:0 15px;font-size:13px;font-weight:600;cursor:pointer;transition:filter .14s;-webkit-tap-highlight-color:transparent}
+  .bot-input button:hover{filter:brightness(1.1)}
   .bot-note{font-size:9.5px;color:var(--ink-soft);opacity:.7;text-align:center;padding:0 12px 8px}
   @media (max-width:560px){
     .botwin{left:12px;right:12px;transform:none;width:auto;bottom:max(14px,env(safe-area-inset-bottom,14px))}
@@ -2272,9 +2274,11 @@ function apply(){
     if (ok){ featLayer.addLayer(m); featShown++; } else featLayer.removeLayer(m);
   });
   const totalShown = show.length + featShown;
-  document.getElementById('n').textContent = totalShown.toLocaleString();
-  document.getElementById('nlabel').textContent = totalShown === 1 ? 'project shown' : 'projects shown';
   const filtered = state.q || state.type!=='all' || state.ten!=='all' || state.tiers.size<4 || state.beds!=='all' || state.year!=='all' || state.devFilter;
+  document.getElementById('n').textContent = totalShown.toLocaleString();
+  document.getElementById('nlabel').textContent = filtered
+    ? 'of ' + DATA.length.toLocaleString() + ' total'
+    : totalShown === 1 ? 'project' : 'projects';
   document.getElementById('reset').style.display = filtered ? 'inline' : 'none';
 
   // filter badge
