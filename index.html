@@ -65,8 +65,8 @@
 
   /* sidebar section structure */
   .sidebar-sec{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
-    color:var(--ink-soft);padding:14px 0 7px;border-top:1px solid rgba(27,42,36,.1);margin-top:6px;opacity:.65}
-  .sidebar-sec.is-first{border-top:none;padding-top:4px;margin-top:0}
+    color:var(--ink-soft);padding:18px 0 7px;margin-top:0;opacity:.65}
+  .sidebar-sec.is-first{padding-top:4px}
   .panel-search{margin-bottom:10px}
   .qf-group{margin-bottom:9px}
   .qf-tag{font-size:9px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;
@@ -99,10 +99,9 @@
   .flabel{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 6px}
 
   /* ---------- accordion sections ---------- */
-  .acc{border-bottom:1px solid rgba(27,42,36,.09)}
-  .acc:last-of-type{border-bottom:none}
+  .acc{}
   .acc-head{width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;
-    justify-content:space-between;gap:10px;padding:12px 2px;font:inherit;color:var(--ink-soft);
+    justify-content:space-between;gap:10px;padding:10px 2px;font:inherit;color:var(--ink-soft);
     font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
     text-align:left;-webkit-tap-highlight-color:transparent;transition:color .15s}
   .acc-head:hover{color:var(--ink)}
@@ -717,10 +716,16 @@
     display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex:none}
   .auth-bar-email{font-size:10.5px;color:var(--ink-soft);flex:1;min-width:0;
     overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .auth-bar-wl{font-size:11px;font-weight:700;color:var(--t1);background:none;border:none;
-    font:inherit;cursor:pointer;padding:3px 8px;border-radius:6px;white-space:nowrap;
-    transition:background .14s;-webkit-tap-highlight-color:transparent}
-  .auth-bar-wl:hover{background:rgba(42,157,143,.1)}
+  .auth-bar-wl{position:relative;background:none;border:none;cursor:pointer;
+    color:var(--ink-soft);padding:4px 5px;border-radius:6px;display:flex;
+    align-items:center;flex:none;line-height:0;
+    transition:color .14s,background .14s;-webkit-tap-highlight-color:transparent}
+  .auth-bar-wl:hover{color:var(--t1);background:rgba(42,157,143,.1)}
+  .auth-bar-badge{position:absolute;top:-3px;right:-3px;
+    background:var(--t1);color:#fff;font:700 8.5px/1 inherit;
+    padding:2px 4px;border-radius:10px;min-width:14px;text-align:center;
+    display:none;pointer-events:none}
+  .auth-bar-badge:not(:empty){display:block}
   .auth-bar-signout{background:none;border:none;cursor:pointer;color:var(--ink-soft);
     opacity:.45;padding:3px;border-radius:4px;transition:opacity .14s;display:flex;line-height:0}
   .auth-bar-signout:hover{opacity:.85}
@@ -998,7 +1003,10 @@
         <div class="auth-bar-avatar" id="authBarAvatar">?</div>
         <span class="auth-bar-email" id="authBarEmail"></span>
       </button>
-      <button class="auth-bar-wl" onclick="openWatchlist()">Watchlist<span id="wlCount"></span></button>
+      <button class="auth-bar-wl" onclick="openWatchlist()" title="Saved properties" aria-label="Saved properties">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span class="auth-bar-badge" id="wlCount"></span>
+      </button>
       <button class="auth-bar-signout" onclick="doSignOut()" title="Sign out" aria-label="Sign out">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       </button>
@@ -3597,7 +3605,7 @@ async function _loadSaved() {
   const { data } = await _SB.from('saved_properties').select('project_id').eq('user_id', _sbUser.id);
   _savedSet = new Set((data || []).map(r => String(r.project_id)));
   const n = _savedSet.size;
-  document.getElementById('wlCount').textContent = n > 0 ? ` (${n})` : '';
+  document.getElementById('wlCount').textContent = n > 0 ? String(n) : '';
   updateSaveButtonState();
 }
 
@@ -3628,7 +3636,7 @@ async function toggleSaveProperty(pid, d) {
     _savedSet.add(pid);
   }
   const n = _savedSet.size;
-  document.getElementById('wlCount').textContent = n > 0 ? ` (${n})` : '';
+  document.getElementById('wlCount').textContent = n > 0 ? String(n) : '';
   updateSaveButtonState();
 }
 
@@ -3704,7 +3712,7 @@ async function removeSaved(pid, btn) {
   await _SB.from('saved_properties').delete().eq('user_id', _sbUser.id).eq('project_id', pid);
   _savedSet.delete(pid);
   const n = _savedSet.size;
-  document.getElementById('wlCount').textContent = n > 0 ? ` (${n})` : '';
+  document.getElementById('wlCount').textContent = n > 0 ? String(n) : '';
   updateSaveButtonState();
   btn.closest('.wl-item')?.remove();
   if (!document.querySelector('#wlList .wl-item')) openWatchlist();
