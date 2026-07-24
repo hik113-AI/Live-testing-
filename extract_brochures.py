@@ -73,7 +73,10 @@ REEXTRACT = "--reextract" in sys.argv
 def _clip_score_property(jpeg_bytes: bytes) -> float:
     """Return the probability that this image is a property exterior photo/render."""
     import torch
-    img = Image.open(io.BytesIO(jpeg_bytes)).convert("RGB")
+    try:
+        img = Image.open(io.BytesIO(jpeg_bytes)).convert("RGB")
+    except Exception:
+        return 0.0
     inputs = _clip_processor(
         text=_PROMPTS, images=img, return_tensors="pt", padding=True
     )
