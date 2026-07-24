@@ -25,7 +25,7 @@ def in_malaysia(lat, lon):
         lat, lon = float(lat), float(lon)
     except (TypeError, ValueError):
         return False
-    if 0.85 <= lat <= 6.75 and 99.4 <= lon <= 104.8:  return True  # Peninsular
+    if 1.15 <= lat <= 6.75 and 99.4 <= lon <= 104.8:  return True  # Peninsular (south tip ~1.26°N)
     if 0.85 <= lat <= 5.15 and 109.3 <= lon <= 115.7:  return True  # Sarawak
     if 4.00 <= lat <= 7.50 and 115.4 <= lon <= 119.5:  return True  # Sabah
     return False
