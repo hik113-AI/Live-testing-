@@ -1957,7 +1957,7 @@ function renderCatchment(hits, latlng){
     <div class="sc-sec">Projects by launch year</div>
     ${rtBarChart(projSeries, '#2A9D8F', v => v.toLocaleString(), 'p')}
     <div class="sc-sec">Units by launch year</div>
-    ${rtBarChart(unitSeries, '#143C2B', v => v >= 1000 ? (v/1000).toFixed(v>=10000?0:1)+'k' : v, 'u')}
+    ${rtBarChart(unitSeries, '#D9A23B', v => v >= 1000 ? (v/1000).toFixed(v>=10000?0:1)+'k' : v, 'u')}
     <div class="sc-sec">Liquidity · aggregate take-up</div>
     <div class="bar"><i style="width:${tu}%;background:${tuColor}"></i></div>
     <div class="soldline"><span>${sold.toLocaleString()} of ${units.toLocaleString()} units sold</span><span><b>${tu}%</b></span></div>
