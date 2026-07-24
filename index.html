@@ -709,6 +709,114 @@
       width:36px;height:4px;border-radius:2px;background:rgba(255,255,255,.3)}
   }
 
+  /* ── auth bar ─────────────────────────────────────────────────── */
+  .panel-auth-bar{display:flex;align-items:center;gap:8px;padding:7px 14px;
+    background:rgba(20,60,43,.05);border-bottom:1px solid rgba(27,42,36,.09);min-height:36px}
+  .panel-auth-bar>div{display:flex;align-items:center;gap:8px;width:100%}
+  .auth-bar-avatar{width:22px;height:22px;border-radius:50%;background:var(--t1);
+    display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex:none}
+  .auth-bar-email{font-size:10.5px;color:var(--ink-soft);flex:1;min-width:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .auth-bar-wl{font-size:11px;font-weight:700;color:var(--t1);background:none;border:none;
+    font:inherit;cursor:pointer;padding:3px 8px;border-radius:6px;white-space:nowrap;
+    transition:background .14s;-webkit-tap-highlight-color:transparent}
+  .auth-bar-wl:hover{background:rgba(42,157,143,.1)}
+  .auth-bar-signout{background:none;border:none;cursor:pointer;color:var(--ink-soft);
+    opacity:.45;padding:3px;border-radius:4px;transition:opacity .14s;display:flex;line-height:0}
+  .auth-bar-signout:hover{opacity:.85}
+  .auth-bar-signin{font-size:11px;font-weight:600;color:var(--ink);background:#143C2B;
+    border:none;font:600 11px/1 inherit;cursor:pointer;padding:5px 12px;border-radius:7px;
+    color:#F7F5F0;transition:background .14s;-webkit-tap-highlight-color:transparent}
+  .auth-bar-signin:hover{background:#1a5038}
+
+  /* ── auth modal ────────────────────────────────────────────────── */
+  .auth-overlay{position:fixed;inset:0;z-index:4000;background:rgba(27,42,36,.55);
+    backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+  .auth-overlay.open{display:flex}
+  .auth-modal{background:var(--paper);border-radius:20px;
+    box-shadow:0 24px 80px rgba(0,0,0,.35);width:100%;max-width:370px;overflow:hidden}
+  .auth-modal-head{background:linear-gradient(145deg,#1e5040,#0e2a1a);
+    color:#F7F5F0;padding:20px 22px 18px;position:relative}
+  .auth-modal-head h2{font-family:Georgia,serif;font-size:19px;line-height:1.2;margin-bottom:4px}
+  .auth-modal-head p{font-size:11px;color:rgba(247,245,240,.6);line-height:1.55}
+  .auth-x{position:absolute;top:12px;right:12px;background:rgba(255,255,255,.12);
+    border:none;border-radius:50%;width:27px;height:27px;display:flex;align-items:center;
+    justify-content:center;cursor:pointer;color:#fff;font-size:16px;line-height:1;
+    transition:background .14s}
+  .auth-x:hover{background:rgba(255,255,255,.22)}
+  .auth-tabs{display:flex;border-bottom:1px solid rgba(27,42,36,.1)}
+  .auth-tab{flex:1;padding:11px;font:600 12px/1 inherit;text-align:center;background:none;
+    border:none;border-bottom:2px solid transparent;cursor:pointer;color:var(--ink-soft);
+    transition:color .14s,border-color .14s;-webkit-tap-highlight-color:transparent}
+  .auth-tab.on{color:var(--t1);border-bottom-color:var(--t1)}
+  .auth-body{padding:18px 22px 22px;display:flex;flex-direction:column;gap:11px}
+  .auth-field{display:flex;flex-direction:column;gap:5px}
+  .auth-field label{font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--ink-soft)}
+  .auth-field input{padding:10px 12px;border:1.5px solid rgba(27,42,36,.15);border-radius:9px;
+    font:13px/1.4 inherit;color:var(--ink);background:#fff;outline:none;
+    transition:border-color .18s,box-shadow .18s;-webkit-appearance:none}
+  .auth-field input:focus{border-color:var(--t1);box-shadow:0 0 0 3px rgba(42,157,143,.12)}
+  .auth-submit{width:100%;padding:12px;background:#143C2B;color:#F7F5F0;
+    font:700 13px/1 inherit;border:none;border-radius:10px;cursor:pointer;
+    transition:background .15s;margin-top:2px;-webkit-tap-highlight-color:transparent}
+  .auth-submit:hover{background:#1a5038}
+  .auth-submit:disabled{opacity:.45;cursor:not-allowed}
+  .auth-divider{display:flex;align-items:center;gap:10px}
+  .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:rgba(27,42,36,.12)}
+  .auth-divider span{font-size:10.5px;color:var(--ink-soft)}
+  .auth-google{width:100%;padding:11px;background:#fff;border:1.5px solid rgba(27,42,36,.15);
+    border-radius:10px;font:600 12.5px/1 inherit;color:var(--ink);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:9px;
+    transition:background .14s,border-color .14s;-webkit-tap-highlight-color:transparent}
+  .auth-google:hover{background:#f5f4f0;border-color:rgba(27,42,36,.25)}
+  .auth-msg{font-size:12px;border-radius:7px;padding:8px 11px;display:none;line-height:1.45}
+  .auth-msg.show{display:block}
+  .auth-msg.err{color:#9B2226;background:rgba(155,34,38,.07)}
+  .auth-msg.ok{color:#065F46;background:rgba(6,95,70,.07)}
+  .mfa-wrap{padding:22px 22px 26px;text-align:center}
+  .mfa-wrap h3{font-family:Georgia,serif;font-size:17px;margin-bottom:6px}
+  .mfa-wrap p{font-size:12px;color:var(--ink-soft);line-height:1.55;margin-bottom:16px}
+  .mfa-code{width:100%;padding:14px;font:700 22px/1 inherit;letter-spacing:.25em;
+    text-align:center;border:2px solid rgba(27,42,36,.2);border-radius:10px;
+    color:var(--ink);background:#fff;outline:none;transition:border-color .18s;-webkit-appearance:none}
+  .mfa-code:focus{border-color:var(--t1)}
+  .mfa-qr{display:block;margin:0 auto 12px;border-radius:8px;border:1px solid rgba(27,42,36,.12)}
+  .mfa-secret{font-size:10px;color:var(--ink-soft);background:rgba(27,42,36,.06);
+    border-radius:6px;padding:8px;font-family:monospace;word-break:break-all;
+    text-align:left;margin-bottom:14px}
+  .auth-link-btn{background:none;border:none;font:inherit;font-size:12px;color:var(--ink-soft);
+    cursor:pointer;text-decoration:underline;text-underline-offset:2px;margin-top:6px;
+    transition:color .14s}
+  .auth-link-btn:hover{color:var(--ink)}
+
+  /* ── save button & watchlist ───────────────────────────────────── */
+  .det-save-btn{display:flex;align-items:center;justify-content:center;gap:7px;
+    width:100%;padding:10px 16px;margin-bottom:10px;
+    border-radius:10px;border:1.5px solid rgba(27,42,36,.15);
+    background:#fff;font:600 12.5px/1 inherit;color:var(--ink-soft);
+    cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent}
+  .det-save-btn:hover{border-color:var(--t1);color:var(--t1);background:rgba(42,157,143,.05)}
+  .det-save-btn.saved{background:#143C2B;border-color:#143C2B;color:#F7F5F0}
+  .det-save-btn.saved:hover{background:#1a5038;border-color:#1a5038}
+  .wl-empty{text-align:center;padding:28px 0;color:var(--ink-soft);font-size:12.5px;line-height:1.6}
+  .wl-empty svg{display:block;margin:0 auto 12px;opacity:.22}
+  .wl-item{padding:10px 0;border-bottom:1px solid rgba(27,42,36,.08);
+    display:flex;align-items:flex-start;gap:9px}
+  .wl-item:last-child{border-bottom:none}
+  .wl-dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:3px}
+  .wl-info{flex:1;min-width:0;cursor:pointer}
+  .wl-info:hover .wl-name{color:var(--t1)}
+  .wl-name{font-size:12.5px;font-weight:600;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px;transition:color .14s}
+  .wl-meta{font-size:10.5px;color:var(--ink-soft)}
+  .wl-chips{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap}
+  .wl-chip{font-size:9px;letter-spacing:.04em;padding:2px 6px;border-radius:20px;
+    border:1px solid rgba(42,157,143,.3);color:var(--t1);background:rgba(42,157,143,.07)}
+  .wl-rm{background:none;border:none;cursor:pointer;color:var(--ink-soft);
+    opacity:.3;padding:2px;border-radius:4px;transition:opacity .14s;flex:none;
+    display:flex;align-items:center;line-height:0;margin-top:1px}
+  .wl-rm:hover{opacity:.85}
+
   /* compact popup → view details button */
   .pop-view-btn{display:block;width:100%;padding:11px 16px 12px;background:#143C2B;color:#F7F5F0;
     font:600 12.5px/1 inherit;letter-spacing:.04em;text-align:center;
@@ -740,6 +848,79 @@
 </style>
 </head>
 <body>
+
+<!-- ── Auth modal ─────────────────────────────────────────────────────── -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-modal">
+    <!-- Main sign-in / sign-up view -->
+    <div id="authMain">
+      <div class="auth-modal-head">
+        <h2>New Launches Explorer</h2>
+        <p>Sign in to save properties and get email alerts on price, take-up and status changes.</p>
+        <button class="auth-x" onclick="closeAuth()" aria-label="Close">×</button>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab on" id="tabSignIn" onclick="switchAuthTab('signin')">Sign in</button>
+        <button class="auth-tab" id="tabSignUp" onclick="switchAuthTab('signup')">Create account</button>
+      </div>
+      <div class="auth-body">
+        <div class="auth-field">
+          <label for="authEmail">Email</label>
+          <input type="email" id="authEmail" placeholder="you@example.com" autocomplete="email">
+        </div>
+        <div class="auth-field">
+          <label for="authPw">Password</label>
+          <input type="password" id="authPw" placeholder="••••••••" autocomplete="current-password">
+        </div>
+        <div class="auth-msg err" id="authMsg"></div>
+        <button class="auth-submit" id="authSubmit" onclick="handleAuthSubmit()">Sign in</button>
+        <div class="auth-divider"><span>or</span></div>
+        <button class="auth-google" onclick="signInWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+          </svg>
+          Continue with Google
+        </button>
+      </div>
+    </div>
+
+    <!-- MFA verification view -->
+    <div id="authMFAVerify" style="display:none">
+      <div class="auth-modal-head">
+        <h2>Two-factor auth</h2>
+        <p>Enter the 6-digit code from your authenticator app.</p>
+        <button class="auth-x" onclick="cancelMFA()" aria-label="Close">×</button>
+      </div>
+      <div class="mfa-wrap">
+        <input type="text" class="mfa-code" id="mfaVerifyCode" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+        <div class="auth-msg err" id="mfaVerifyMsg" style="margin-top:10px"></div>
+        <button class="auth-submit" style="margin-top:14px" onclick="verifyMFA()">Verify</button>
+        <br><button class="auth-link-btn" onclick="cancelMFA()">Use a different account</button>
+      </div>
+    </div>
+
+    <!-- MFA setup view (offered after first login) -->
+    <div id="authMFASetup" style="display:none">
+      <div class="auth-modal-head">
+        <h2>Set up 2-factor auth</h2>
+        <p>Scan this QR code with Google Authenticator or Authy, then enter the code to confirm.</p>
+        <button class="auth-x" onclick="skipMFASetup()" aria-label="Close">×</button>
+      </div>
+      <div class="mfa-wrap">
+        <img id="mfaQR" class="mfa-qr" width="160" height="160" alt="2FA QR code">
+        <div class="mfa-secret" id="mfaSecret"></div>
+        <input type="text" class="mfa-code" id="mfaSetupCode" placeholder="000000" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+        <div class="auth-msg err" id="mfaSetupMsg" style="margin-top:10px"></div>
+        <button class="auth-submit" style="margin-top:14px" onclick="confirmMFASetup()">Enable 2FA</button>
+        <br><button class="auth-link-btn" onclick="skipMFASetup()">Skip for now</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="map" role="application" aria-label="Map of new property launches in Malaysia"></div>
 
 <div class="panel">
@@ -751,12 +932,29 @@
     </div>
     <svg class="chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 14 6-6 6 6"/></svg>
   </button>
+  <!-- auth status strip -->
+  <div class="panel-auth-bar" id="panelAuthBar">
+    <div id="authBarGuest">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="opacity:.35;flex:none"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+      <span style="font-size:11px;color:var(--ink-soft);flex:1">Save properties &amp; get alerts</span>
+      <button class="auth-bar-signin" onclick="openAuth()">Sign in</button>
+    </div>
+    <div id="authBarUser" style="display:none">
+      <div class="auth-bar-avatar" id="authBarAvatar">?</div>
+      <span class="auth-bar-email" id="authBarEmail"></span>
+      <button class="auth-bar-wl" onclick="openWatchlist()">Watchlist<span id="wlCount"></span></button>
+      <button class="auth-bar-signout" onclick="doSignOut()" title="Sign out" aria-label="Sign out">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </div>
   <div class="panel-body" id="panelBody">
     <div class="dev-filter-bar" id="devFilterBar">
       <span id="devFilterLabel">Showing developer</span>
       <button onclick="clearDevFilter()">✕ Clear</button>
     </div>
     <div id="projDetail" class="proj-detail"></div>
+    <div id="watchlistView" class="proj-detail"></div>
     <div class="chips" id="viewChips" role="group" aria-label="Map view" style="margin-bottom:12px">
       <button class="chip on" data-v="proj">Projects</button>
       <button class="chip" data-v="heat">State heatmap</button>
@@ -1044,6 +1242,7 @@
 
 <div id="chartTip"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
 <script>
@@ -1237,6 +1436,10 @@ function openProjectDetail() {
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
       Back to filters
     </button>
+    <button class="det-save-btn" id="detSaveBtn" data-pid="${esc(String(pid))}" onclick="toggleSaveProperty('${esc(String(pid))}', _currentDetailProject)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      <span class="det-save-label">Save to watchlist</span>
+    </button>
     ${brochureUrl ? `<div class="proj-det-img" data-pid="${esc(pid)}" data-brochure-url="${esc(brochureUrl)}">
       <img alt="Property brochure cover">
       <div class="proj-det-img-spin">
@@ -1328,6 +1531,7 @@ function openProjectDetail() {
     el.style.display = 'none';
   });
   detailEl.classList.add('open');
+  updateSaveButtonState();
 
   if (panelEl.classList.contains('closed')) {
     panelEl.classList.remove('closed');
@@ -3144,6 +3348,318 @@ document.getElementById('nlabel').textContent = 'loading';
   trendDataReady = true;
   tryBuildTrending();
 })();
+
+// ═══════════════════════════════════════════════════════════════
+// SUPABASE AUTH + WATCHLIST
+// ═══════════════════════════════════════════════════════════════
+const _SB = window.supabase.createClient(
+  'https://jpzucehdsciescqumchb.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpwenVjZWhkc2NpZXNjcXVtY2hiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ4MjY2MTksImV4cCI6MjEwMDQwMjYxOX0.LxYAXzbXes7JKpDVzD82987uAdnNUTWRNsyNBFhSJlA'
+);
+
+let _sbUser = null;
+let _savedSet = new Set();
+let _mfaFactorId = null, _mfaChallengeId = null, _mfaSetupFactorId = null;
+let _authTabMode = 'signin';
+
+// ── auth state listener ──────────────────────────────────────────
+_SB.auth.onAuthStateChange(async (event, session) => {
+  _sbUser = session?.user ?? null;
+  _renderAuthBar();
+  if (_sbUser) {
+    await _loadSaved();
+  } else {
+    _savedSet.clear();
+    document.getElementById('wlCount').textContent = '';
+    updateSaveButtonState();
+  }
+});
+
+function _renderAuthBar() {
+  const guest = document.getElementById('authBarGuest');
+  const user  = document.getElementById('authBarUser');
+  if (_sbUser) {
+    guest.style.display = 'none';
+    user.style.display  = 'flex';
+    const email = _sbUser.email || _sbUser.user_metadata?.full_name || '';
+    document.getElementById('authBarEmail').textContent = email;
+    document.getElementById('authBarAvatar').textContent = (email[0] || '?').toUpperCase();
+  } else {
+    guest.style.display = 'flex';
+    user.style.display  = 'none';
+  }
+}
+
+// ── modal helpers ────────────────────────────────────────────────
+function openAuth() {
+  document.getElementById('authOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('authEmail').focus(), 80);
+}
+function closeAuth() {
+  document.getElementById('authOverlay').classList.remove('open');
+  _showAuthView('main');
+  _clearAuthMsgs();
+}
+function _showAuthView(v) {
+  document.getElementById('authMain').style.display      = v === 'main'      ? '' : 'none';
+  document.getElementById('authMFAVerify').style.display = v === 'mfa-verify' ? '' : 'none';
+  document.getElementById('authMFASetup').style.display  = v === 'mfa-setup'  ? '' : 'none';
+}
+function _clearAuthMsgs() {
+  ['authMsg','mfaVerifyMsg','mfaSetupMsg'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = '';
+    el.className = 'auth-msg err';
+  });
+}
+function _setMsg(id, text, type = 'err') {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'auth-msg ' + type + ' show';
+}
+document.getElementById('authOverlay').addEventListener('click', e => {
+  if (e.target.id === 'authOverlay') closeAuth();
+});
+
+function switchAuthTab(tab) {
+  _authTabMode = tab;
+  document.getElementById('tabSignIn').classList.toggle('on', tab === 'signin');
+  document.getElementById('tabSignUp').classList.toggle('on', tab === 'signup');
+  document.getElementById('authSubmit').textContent = tab === 'signin' ? 'Sign in' : 'Create account';
+  document.getElementById('authPw').autocomplete = tab === 'signin' ? 'current-password' : 'new-password';
+  _clearAuthMsgs();
+}
+
+// ── sign in / sign up ────────────────────────────────────────────
+async function handleAuthSubmit() {
+  const email = document.getElementById('authEmail').value.trim();
+  const pw    = document.getElementById('authPw').value;
+  if (!email || !pw) { _setMsg('authMsg', 'Please enter your email and password.'); return; }
+  const btn = document.getElementById('authSubmit');
+  btn.disabled = true; _clearAuthMsgs();
+  try {
+    if (_authTabMode === 'signup') {
+      const { error } = await _SB.auth.signUp({ email, password: pw });
+      if (error) throw error;
+      _setMsg('authMsg', 'Account created — check your email for a confirmation link.', 'ok');
+    } else {
+      const { data, error } = await _SB.auth.signInWithPassword({ email, password: pw });
+      if (error) throw error;
+      await _postLoginMFA(data.session);
+    }
+  } catch (e) {
+    _setMsg('authMsg', e.message || 'Sign in failed. Please check your credentials.');
+  } finally { btn.disabled = false; }
+}
+
+async function signInWithGoogle() {
+  await _SB.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: location.origin }
+  });
+}
+
+async function doSignOut() {
+  await _SB.auth.signOut();
+  closeWatchlist();
+}
+
+// ── MFA flow ─────────────────────────────────────────────────────
+async function _postLoginMFA(session) {
+  if (!session) { closeAuth(); return; }
+  try {
+    const { data: aal } = await _SB.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (aal?.nextLevel === 'aal2' && aal?.currentLevel !== 'aal2') {
+      // enrolled but not yet verified this session — challenge
+      const { data: factors } = await _SB.auth.mfa.listFactors();
+      const totp = factors?.totp?.[0];
+      if (totp) {
+        _mfaFactorId = totp.id;
+        const { data: ch } = await _SB.auth.mfa.challenge({ factorId: totp.id });
+        _mfaChallengeId = ch.id;
+        _showAuthView('mfa-verify');
+        document.getElementById('mfaVerifyCode').value = '';
+        document.getElementById('mfaVerifyCode').focus();
+        return;
+      }
+    }
+    // new account with no MFA — offer setup
+    if (aal?.currentLevel === 'aal1') {
+      const { data: factors } = await _SB.auth.mfa.listFactors();
+      if (!factors?.totp?.length) { await _offerMFASetup(); return; }
+    }
+  } catch {}
+  closeAuth();
+}
+
+async function verifyMFA() {
+  const code = document.getElementById('mfaVerifyCode').value.trim();
+  if (code.length !== 6) { _setMsg('mfaVerifyMsg', 'Enter the 6-digit code.'); return; }
+  try {
+    const { error } = await _SB.auth.mfa.verify({ factorId: _mfaFactorId, challengeId: _mfaChallengeId, code });
+    if (error) throw error;
+    closeAuth();
+  } catch (e) { _setMsg('mfaVerifyMsg', e.message || 'Invalid code — try again.'); }
+}
+function cancelMFA() { _SB.auth.signOut(); _showAuthView('main'); }
+
+async function _offerMFASetup() {
+  try {
+    const { data, error } = await _SB.auth.mfa.enroll({ factorType: 'totp', friendlyName: 'Authenticator' });
+    if (error || !data?.totp) { closeAuth(); return; }
+    _mfaSetupFactorId = data.id;
+    document.getElementById('mfaQR').src       = data.totp.qr_code;
+    document.getElementById('mfaSecret').textContent = 'Or enter manually: ' + data.totp.secret;
+    document.getElementById('mfaSetupCode').value = '';
+    _showAuthView('mfa-setup');
+    document.getElementById('mfaSetupCode').focus();
+  } catch { closeAuth(); }
+}
+async function confirmMFASetup() {
+  const code = document.getElementById('mfaSetupCode').value.trim();
+  if (code.length !== 6) { _setMsg('mfaSetupMsg', 'Enter the 6-digit code.'); return; }
+  try {
+    const { data: ch } = await _SB.auth.mfa.challenge({ factorId: _mfaSetupFactorId });
+    const { error } = await _SB.auth.mfa.verify({ factorId: _mfaSetupFactorId, challengeId: ch.id, code });
+    if (error) throw error;
+    closeAuth();
+  } catch (e) { _setMsg('mfaSetupMsg', e.message || 'Invalid code — try again.'); }
+}
+function skipMFASetup() {
+  if (_mfaSetupFactorId) {
+    _SB.auth.mfa.unenroll({ factorId: _mfaSetupFactorId }).catch(() => {});
+    _mfaSetupFactorId = null;
+  }
+  closeAuth();
+}
+
+// ── saved properties ──────────────────────────────────────────────
+async function _loadSaved() {
+  if (!_sbUser) return;
+  const { data } = await _SB.from('saved_properties').select('project_id').eq('user_id', _sbUser.id);
+  _savedSet = new Set((data || []).map(r => String(r.project_id)));
+  const n = _savedSet.size;
+  document.getElementById('wlCount').textContent = n > 0 ? ` (${n})` : '';
+  updateSaveButtonState();
+}
+
+function updateSaveButtonState() {
+  const btn = document.getElementById('detSaveBtn');
+  if (!btn) return;
+  const saved = _savedSet.has(btn.dataset.pid);
+  btn.classList.toggle('saved', saved);
+  const lbl = btn.querySelector('.det-save-label');
+  if (lbl) lbl.textContent = saved ? '✓ Saved to watchlist' : 'Save to watchlist';
+}
+
+async function toggleSaveProperty(pid, d) {
+  if (!_sbUser) { openAuth(); return; }
+  pid = String(pid);
+  if (_savedSet.has(pid)) {
+    await _SB.from('saved_properties').delete().eq('user_id', _sbUser.id).eq('project_id', pid);
+    _savedSet.delete(pid);
+  } else {
+    const [name,,, ten,,dev, pmin, pmax,, sold] = d;
+    await _SB.from('saved_properties').upsert({
+      user_id: _sbUser.id, project_id: pid,
+      project_name: name, developer: dev, state: d[16],
+      snap_price_min: pmin || null, snap_price_max: pmax || null,
+      snap_sold: sold || null, snap_units: d[8] || null, snap_status: ten,
+      alert_price: true, alert_takeup: true, alert_status: true,
+    });
+    _savedSet.add(pid);
+  }
+  const n = _savedSet.size;
+  document.getElementById('wlCount').textContent = n > 0 ? ` (${n})` : '';
+  updateSaveButtonState();
+}
+
+// ── watchlist panel ───────────────────────────────────────────────
+async function openWatchlist() {
+  if (!_sbUser) { openAuth(); return; }
+  const { data: rows } = await _SB.from('saved_properties')
+    .select('*').eq('user_id', _sbUser.id).order('saved_at', { ascending: false });
+
+  const wlEl = document.getElementById('watchlistView');
+  const backBtn = `<button class="proj-det-back" onclick="closeWatchlist()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+    Back to filters
+  </button>`;
+
+  if (!rows?.length) {
+    wlEl.innerHTML = backBtn + `
+      <div class="wl-empty">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <b>No saved properties yet</b><br>
+        Open a property detail and tap<br>"Save to watchlist" to track it here.
+      </div>`;
+  } else {
+    const items = rows.map(r => {
+      const tier = r.snap_price_min ? tierOf(r.snap_price_min) : 0;
+      const alerts = [r.alert_price && 'Price', r.alert_takeup && 'Take-up', r.alert_status && 'Status'].filter(Boolean);
+      return `<div class="wl-item">
+        <span class="wl-dot" style="background:${TIER_COLORS[tier]}"></span>
+        <div class="wl-info" onclick="openSavedProject('${r.project_id}')">
+          <div class="wl-name">${esc(r.project_name || r.project_id)}</div>
+          <div class="wl-meta">${r.developer ? esc(r.developer) : ''}${r.state ? ' · '+esc(r.state) : ''}</div>
+          ${alerts.length ? `<div class="wl-chips">${alerts.map(a=>`<span class="wl-chip">📬 ${a}</span>`).join('')}</div>` : ''}
+        </div>
+        <button class="wl-rm" onclick="removeSaved('${r.project_id}',this)" title="Remove" aria-label="Remove">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+    wlEl.innerHTML = backBtn + `
+      <div class="sidebar-sec is-first">Watchlist · ${rows.length} saved</div>
+      <div id="wlList">${items}</div>
+      <div style="margin-top:14px;padding:10px 12px;background:rgba(27,42,36,.04);border-radius:8px;border:1px solid rgba(27,42,36,.09)">
+        <div style="font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--ink-soft);opacity:.7;margin-bottom:5px">Email alerts</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);line-height:1.55">You'll be emailed when saved properties change price, take-up rate crosses 50% or 80%, or status changes.</div>
+        <div style="font-size:10px;color:var(--ink-soft);opacity:.65;margin-top:5px">Alerts sent to: ${esc(_sbUser?.email || '')}</div>
+      </div>`;
+  }
+
+  const panelBody = document.getElementById('panelBody');
+  panelBody.querySelectorAll(':scope > *:not(#watchlistView)').forEach(el => {
+    el._wlPrev = el.style.display; el.style.display = 'none';
+  });
+  wlEl.classList.add('open');
+  panelBody.scrollTop = 0;
+  if (panelEl.classList.contains('closed')) {
+    panelEl.classList.remove('closed');
+    panelBtn.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function closeWatchlist() {
+  const panelBody = document.getElementById('panelBody');
+  panelBody.querySelectorAll(':scope > *:not(#watchlistView)').forEach(el => {
+    el.style.display = el._wlPrev !== undefined ? el._wlPrev : '';
+    delete el._wlPrev;
+  });
+  document.getElementById('watchlistView').classList.remove('open');
+}
+
+async function removeSaved(pid, btn) {
+  pid = String(pid);
+  await _SB.from('saved_properties').delete().eq('user_id', _sbUser.id).eq('project_id', pid);
+  _savedSet.delete(pid);
+  const n = _savedSet.size;
+  document.getElementById('wlCount').textContent = n > 0 ? ` (${n})` : '';
+  updateSaveButtonState();
+  btn.closest('.wl-item')?.remove();
+  if (!document.querySelector('#wlList .wl-item')) openWatchlist();
+}
+
+function openSavedProject(pid) {
+  const entry = DATA.find(d => String(d[14]) === String(pid));
+  if (!entry) return;
+  _currentDetailProject = entry;
+  closeWatchlist();
+  openProjectDetail();
+  map.flyTo([entry[1], entry[2]], 14, { duration: 1.2 });
+}
+
 </script>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
