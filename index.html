@@ -32,7 +32,7 @@
   }
   *{box-sizing:border-box;margin:0}
   html,body{height:100%;width:100%;margin:0;padding:0;overflow:hidden}
-  #map{position:fixed;top:0;left:0;width:100vw;height:100vh}
+  #map{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0}
   body{font:14px/1.45 "Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
   #map{background:#DCE6E3}
   .leaflet-zoom-anim .leaflet-zoom-animated{transition:transform 0.05s ease-out}
@@ -59,7 +59,7 @@
   .panel-head .eyebrow{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#C9A227;margin-bottom:5px}
   .panel-head h1{font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:22px;line-height:1.18}
   .panel-head .sub{font-size:11px;color:rgba(247,245,240,.65);margin-top:6px;line-height:1.5}
-  .panel-body{padding:10px 12px 14px;background:#F0EDE6;max-height:calc(100vh - 148px);overflow-y:auto;overscroll-behavior:contain;
+  .panel-body{padding:10px 12px 14px;background:#F0EDE6;max-height:calc(100vh - 175px);overflow-y:auto;overscroll-behavior:contain;
     transform:scaleY(1);transform-origin:top;opacity:1;
     transition:max-height 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.25s ease,transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
   .panel-body::-webkit-scrollbar{width:8px}
@@ -581,7 +581,7 @@
     .ad-top-banner{display:none}
     /* Panel */
     .panel{width:calc(100% - 24px);left:12px;top:12px}
-    .panel-body{max-height:50vh}
+    .panel-body{max-height:58vh}
     /* Bottom-sheet panels — full-width, anchored to bottom, rounded top corners */
     .statcard{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
     .rt-report{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
@@ -3811,10 +3811,22 @@ function openSavedProject(pid) {
 function _showFilterContent() {
   document.getElementById('viewChips').style.display = '';
   document.getElementById('projFilters').style.display = '';
+  const count = document.querySelector('.count');
+  if (count) count.style.display = '';
+  const ad = document.getElementById('adSidebar');
+  if (ad) ad.style.display = '';
+  const smb = document.querySelector('.see-map-bar');
+  if (smb) smb.style.display = '';
 }
 function _hideFilterContent() {
   document.getElementById('viewChips').style.display = 'none';
   document.getElementById('projFilters').style.display = 'none';
+  const count = document.querySelector('.count');
+  if (count) count.style.display = 'none';
+  const ad = document.getElementById('adSidebar');
+  if (ad) ad.style.display = 'none';
+  const smb = document.querySelector('.see-map-bar');
+  if (smb) smb.style.display = 'none';
 }
 
 // ── alert pref toggle (per-property in watchlist) ─────────────────
