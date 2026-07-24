@@ -1441,6 +1441,9 @@ let _currentDetailProject = null;
 function openProjectDetail() {
   const d = _currentDetailProject;
   if (!d) return;
+  // Ensure watchlist/account views are fully closed before saving display state
+  closeWatchlist();
+  closeAccount();
   const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid,brochureUrl,state,bumi,devPhone,bedrooms,unitType,hasOffenses,unitsCompact] = d;
   const tier = tierOf(pmin);
   const pct = units > 0 ? Math.min(100, Math.round(sold/units*100)) : null;
@@ -1615,6 +1618,7 @@ function closeProjectDetail() {
     delete el._prevDisplay;
   });
   document.getElementById('projDetail').classList.remove('open');
+  panelBody.scrollTop = 0;
 }
 
 // ---------- brochure image preview ----------
