@@ -1690,17 +1690,17 @@ function unitBreakdownHTML(compact){
     const priceStr = u.pmin ? fmtRM(u.pmin) + (u.pmax > u.pmin ? '–'+fmtRM(u.pmax) : '') : '—';
     const areaStr = u.area ? (Math.round(u.area * 10.7639)).toLocaleString() + ' ft²' : '—';
     const bedsStr = u.beds ? u.beds + ' BR' : '';
-    return `<tr>
-      <td style="padding:3px 6px 3px 0;font-size:11px;color:var(--ink)">${esc(u.type)}${bedsStr ? ' · '+bedsStr : ''}</td>
-      <td style="padding:3px 6px;font-size:10.5px;color:var(--ink-soft);white-space:nowrap">${areaStr}</td>
-      <td style="padding:3px 0 3px 6px;font-size:10.5px;font-weight:600;color:var(--ink);text-align:right;white-space:nowrap">${priceStr}</td>
+    return `<tr style="border-bottom:1px solid rgba(27,42,36,.06)">
+      <td style="padding:5px 6px 5px 0;font-size:11px;color:var(--ink)">${esc(u.type)}${bedsStr ? ' · '+bedsStr : ''}</td>
+      <td style="padding:5px 6px;font-size:10.5px;color:var(--ink-soft);white-space:nowrap">${areaStr}</td>
+      <td style="padding:5px 0 5px 6px;font-size:10.5px;font-weight:600;color:var(--ink);text-align:right;white-space:nowrap">${priceStr}</td>
     </tr>`;
   }).join('');
   const moreRow = extra > 0
-    ? `<tr><td colspan="3" style="padding:4px 0;font-size:10.5px;color:var(--ink-soft)">+ ${extra} more unit type${extra>1?'s':''}</td></tr>`
+    ? `<tr><td colspan="3" style="padding:5px 0;font-size:10.5px;color:var(--ink-soft)">+ ${extra} more unit type${extra>1?'s':''}</td></tr>`
     : '';
   return `<div style="margin:0 0 9px">
-    <div style="font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px">Unit breakdown</div>
+    <div style="font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px">Unit breakdown</div>
     <table style="width:100%;border-collapse:collapse;border-top:1px solid rgba(27,42,36,.1)">${html}${moreRow}</table>
   </div>`;
 }
@@ -1758,6 +1758,9 @@ function popupHTML(d){
       <div class="pop-brochure-spin">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.22-8.56"/></svg>
         Loading image…
+      </div>
+      <div class="pop-brochure-bar">
+        <a class="pop-brochure-open" href="${esc(brochureUrl)}" target="_blank" rel="noopener">View brochure ↗</a>
       </div>
     </div>` : ''}
     <div class="pop-body">
