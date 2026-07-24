@@ -359,7 +359,7 @@
     overflow-y:auto;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);
     border:1px solid rgba(27,42,36,.08);display:none}
   .rt-report.open{display:block}
-  .rt-rhead{background:#143C2B;color:#F7F5F0;padding:14px 16px;position:sticky;top:0;z-index:2}
+  .rt-rhead{background:linear-gradient(145deg,#1e5040 0%,#0e2a1a 100%);color:#F7F5F0;padding:14px 16px;position:sticky;top:0;z-index:2;border-bottom:1px solid rgba(201,162,39,.15)}
   .rt-rhead h2{font-family:Georgia,serif;font-size:18px;font-weight:600}
   .rt-rhead .sub{font-size:11px;color:#D8CFA8;margin-top:2px}
   .rt-rx{position:absolute;top:10px;right:12px;background:none;border:none;color:#F7F5F0;font-size:19px;cursor:pointer;line-height:1;padding:4px}
@@ -385,7 +385,7 @@
     box-shadow:0 16px 50px rgba(27,42,36,.28);border:1px solid rgba(27,42,36,.1);
     display:flex;flex-direction:column;overflow:hidden;
     transition:max-height 0.22s ease}
-  .bot-head{background:#143C2B;color:#F7F5F0;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;
+  .bot-head{background:linear-gradient(145deg,#1e5040 0%,#0e2a1a 100%);color:#F7F5F0;padding:13px 16px;display:flex;align-items:center;justify-content:space-between;
     flex:none;width:100%;border:none;cursor:pointer;font:inherit;text-align:left}
   .bot-chev{flex:none;opacity:.7;transition:transform .18s ease}
   .botwin.open .bot-chev{transform:rotate(180deg)}
@@ -442,8 +442,8 @@
     transition:transform 0.25s cubic-bezier(0.4,0,1,1),opacity 0.2s ease,visibility 0s linear 0.25s}
   .gcard.open{visibility:visible;transform:scale(1);opacity:1;
     transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.2s ease,visibility 0s linear 0s}
-  .g-head{background:var(--ink);color:var(--paper);padding:14px 16px;position:sticky;top:0;z-index:2;
-    display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .g-head{background:linear-gradient(145deg,#1e5040 0%,#0e2a1a 100%);color:var(--paper);padding:14px 16px;position:sticky;top:0;z-index:2;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;border-bottom:1px solid rgba(201,162,39,.15)}
   .g-head h2{font-family:Georgia,serif;font-size:18px;font-weight:600}
   .g-head button{background:none;border:none;color:var(--paper);font-size:19px;cursor:pointer;padding:2px 6px;line-height:1}
   .g-body{padding:14px 16px 18px}
@@ -481,19 +481,21 @@
     align-items:center;justify-content:center;padding:16px}
   .pw.open{display:flex}
   .pw-card{background:var(--paper);border-radius:16px;max-width:380px;width:100%;box-shadow:var(--shadow);overflow:hidden}
-  .pw-head{background:#143C2B;color:#F7F5F0;padding:18px 20px}
-  .pw-head h2{font-family:Georgia,serif;font-size:20px}
-  .pw-head p{font-size:12px;color:#D8CFA8;margin-top:4px}
-  .pw-body{padding:16px 20px 20px}
+  .pw-head{background:linear-gradient(145deg,#1e5040 0%,#0e2a1a 100%);color:#F7F5F0;padding:20px 22px 18px;border-bottom:1px solid rgba(201,162,39,.2)}
+  .pw-eyebrow{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#C9A227;font-weight:700;margin-bottom:7px}
+  .pw-head h2{font-family:Georgia,serif;font-size:22px;margin-bottom:4px}
+  .pw-head p{font-size:11.5px;color:rgba(247,245,240,.65);margin-top:0;line-height:1.5}
+  .pw-body{padding:16px 22px 22px}
   .pw-body ul{list-style:none;margin:0 0 14px;padding:0}
   .pw-body li{font-size:12.5px;padding:5px 0 5px 22px;position:relative}
   .pw-body li::before{content:'✓';position:absolute;left:2px;color:#2A9D8F;font-weight:700}
-  .pw-price{font-size:22px;font-weight:700;margin-bottom:12px}
-  .pw-price span{font-size:12px;font-weight:400;color:var(--ink-soft)}
+  .pw-price{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1;margin-bottom:12px}
+  .pw-price span{font-size:12.5px;font-weight:400;color:var(--ink-soft)}
   .pw-actions{display:flex;flex-direction:column;gap:8px}
   .pw-actions .btn-pro{padding:11px;font-size:13px}
-  .pw-demo{background:none;border:1.5px dashed rgba(27,42,36,.3);border-radius:7px;padding:9px;
-    font-size:11.5px;color:var(--ink-soft);cursor:pointer}
+  .pw-demo{background:none;border:1.5px solid rgba(27,42,36,.16);border-radius:8px;padding:10px;
+    font-size:11.5px;color:var(--ink-soft);cursor:pointer;transition:border-color .14s,color .14s}
+  .pw-demo:hover{border-color:rgba(27,42,36,.3);color:var(--ink)}
   .pw-x{background:none;border:none;color:var(--ink-soft);font-size:12px;cursor:pointer;
     text-decoration:underline;padding:6px;align-self:center}
 
@@ -707,9 +709,9 @@
   .dem-card{position:absolute;z-index:1050;top:66px;right:16px;width:340px;max-height:calc(100% - 82px);overflow-y:auto;background:var(--paper);border-radius:14px;box-shadow:var(--shadow);display:none;overscroll-behavior:contain}
   .dem-card::-webkit-scrollbar{width:6px}
   .dem-card::-webkit-scrollbar-thumb{background:rgba(27,42,36,.18);border-radius:3px}
-  .dem-head{background:var(--ink);color:var(--paper);padding:14px 16px;position:sticky;top:0;z-index:2;border-radius:14px 14px 0 0}
-  .dem-head h2{font-size:15px;font-weight:700;margin:0 24px 2px 0}
-  .dem-head .sub{font-size:11px;opacity:.65}
+  .dem-head{background:linear-gradient(145deg,#1e5040 0%,#0e2a1a 100%);color:var(--paper);padding:14px 16px;position:sticky;top:0;z-index:2;border-radius:14px 14px 0 0;border-bottom:1px solid rgba(201,162,39,.15)}
+  .dem-head h2{font-family:Georgia,serif;font-size:17px;font-weight:600;margin:0 24px 3px 0}
+  .dem-head .sub{font-size:11px;color:rgba(247,245,240,.65)}
   .dem-x{position:absolute;top:10px;right:12px;background:none;border:none;color:var(--paper);font-size:19px;cursor:pointer;line-height:1;padding:4px}
   .dem-body{padding:14px 16px 18px}
   .dem-section{margin-bottom:14px}
@@ -1305,8 +1307,11 @@
 
 <div class="pw" id="pw" role="dialog" aria-modal="true" aria-label="Upgrade to Pro">
   <div class="pw-card">
-    <div class="pw-head"><h2>EPIQ Pro · Market Intelligence</h2>
-      <p>Absorption analytics for serious decisions</p></div>
+    <div class="pw-head">
+      <div class="pw-eyebrow">Upgrade</div>
+      <h2>EPIQ Pro</h2>
+      <p>Full take-up analytics for serious property decisions</p>
+    </div>
     <div class="pw-body">
       <ul>
         <li id="pwCount">Take-up rates on all … projects</li>
