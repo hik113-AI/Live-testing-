@@ -576,6 +576,20 @@
   .devrow span:last-child{font-variant-numeric:tabular-nums;color:var(--ink-soft);flex:none;font-size:11px}
   .leaflet-interactive.state-sel{filter:drop-shadow(0 0 5px rgba(27,42,36,.55))}
 
+  /* detail location pin */
+  @keyframes det-pulse{0%,100%{box-shadow:0 0 0 0 rgba(201,162,39,.55)}50%{box-shadow:0 0 0 9px rgba(201,162,39,0)}}
+  .det-pin{width:13px;height:13px;border-radius:50%;background:#C9A227;border:2.5px solid #fff;
+    box-shadow:0 1px 4px rgba(0,0,0,.35);animation:det-pulse 1.8s ease-in-out infinite}
+
+  /* cluster list panel */
+  .cl-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(27,42,36,.07);cursor:pointer;transition:background .1s}
+  .cl-item:last-child{border-bottom:none}
+  .cl-item:active{background:rgba(42,157,143,.07)}
+  .cl-dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:2px}
+  .cl-name{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.3}
+  .cl-name:hover{color:var(--t1)}
+  .cl-sub{font-size:10.5px;color:var(--ink-soft);margin-top:2px}
+
   @media (max-width:560px){
     /* Top banner — hides on mobile; not enough horizontal space */
     .ad-top-banner{display:none}
@@ -1058,6 +1072,7 @@
     <div id="projDetail" class="proj-detail"></div>
     <div id="watchlistView" class="proj-detail"></div>
     <div id="accountView" class="proj-detail"></div>
+    <div id="clusterView" class="proj-detail"></div>
     <div class="chips" id="viewChips" role="group" aria-label="Map view" style="margin-bottom:12px">
       <button class="chip on" data-v="proj">Projects</button>
       <button class="chip" data-v="heat">State heatmap</button>
@@ -1324,7 +1339,6 @@
       <div class="pw-price">RM99<span>/month · cancel anytime</span></div>
       <div class="pw-actions">
         <button class="btn-pro" onclick="unlockDemo()">Unlock Pro</button>
-        <button class="pw-demo" onclick="unlockDemo()">Demo: unlock this session</button>
         <button class="pw-x" onclick="closePaywall()">Maybe later</button>
       </div>
     </div>
@@ -1446,6 +1460,13 @@ const cluster = L.markerClusterGroup({
 });
 map.addLayer(cluster);
 
+cluster.on('clusterclick', function(e) {
+  const children = e.layer.getAllChildMarkers().filter(m => m._d);
+  if (!children.length || map.getZoom() >= 14) return;
+  L.DomEvent.stopPropagation(e);
+  openClusterList(children.map(m => m._d));
+});
+
 let popupShareData = {};
 
 function copyProjectLink(btn) {
@@ -1477,6 +1498,7 @@ function nativeShare() {
 // ---------- project detail panel ----------
 let _currentDetailProject = null;
 let _detailPin = null;
+let _clusterViewData = null;
 
 function openProjectDetail() {
   const d = _currentDetailProject;
@@ -1503,7 +1525,7 @@ function openProjectDetail() {
     else if (gain >= 2) momentumBadge = `<div style="margin-top:6px"><span class="momentum-badge up">📈 Gaining</span></div>`;
   }
   const bedroomsLabel = bedrooms ? `${bedrooms} BR` : '';
-  const shareURL = location.origin + '?lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5);
+  const shareURL = location.origin + '?pid=' + encodeURIComponent(pid);
   const waMsg = `${name}${dev ? ' by ' + dev : ''}\n${pmin ? fmtRM(pmin) + (pmax > pmin ? ' – ' + fmtRM(pmax) : '') : ''}\n${shareURL}`;
   const waHref = 'https://wa.me/?text=' + encodeURIComponent(waMsg);
   popupShareData = { name, dev, url: shareURL };
@@ -1645,24 +1667,71 @@ function openProjectDetail() {
     panelEl.classList.remove('closed');
     panelBtn.setAttribute('aria-expanded', 'true');
   }
+  document.getElementById('clusterView').classList.remove('open');
   map.closePopup();
   if (_detailPin) { _detailPin.remove(); _detailPin = null; }
   if (lat && lon) {
-    _detailPin = L.circleMarker([lat, lon], {
-      radius: 9, color: '#fff', weight: 2.5,
-      fillColor: '#C9A227', fillOpacity: 1,
-      interactive: false
+    _detailPin = L.marker([lat, lon], {
+      icon: L.divIcon({className:'', iconSize:[13,13], iconAnchor:[6,6], html:'<div class="det-pin"></div>'}),
+      interactive: false, zIndexOffset: 2000
     }).addTo(map);
     map.setView([lat, lon], Math.max(map.getZoom(), 14), {animate: true, duration: 0.4});
   }
+  if (pid) history.replaceState(null, '', '?pid=' + encodeURIComponent(pid));
   document.getElementById('panelBody').scrollTop = 0;
 }
 
 function closeProjectDetail() {
   document.getElementById('projDetail').classList.remove('open');
-  _showFilterContent();
   if (_detailPin) { _detailPin.remove(); _detailPin = null; }
+  history.replaceState(null, '', location.pathname);
+  if (_clusterViewData) {
+    openClusterList(_clusterViewData);
+  } else {
+    _showFilterContent();
+  }
   document.getElementById('panelBody').scrollTop = 0;
+}
+
+// ---------- cluster list panel ----------
+function openClusterList(items) {
+  _clusterViewData = items;
+  const el = document.getElementById('clusterView');
+  const sorted = items.slice().sort((a, b) => (a[6] || 0) - (b[6] || 0));
+  el.innerHTML = `<button class="proj-det-back" onclick="closeClusterList()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+    Back to filters
+  </button>
+  <div class="sidebar-sec is-first">${items.length} projects at this location</div>` +
+  sorted.map(d => {
+    const priceStr = d[6] ? fmtRM(d[6]) + (d[7] > d[6] ? '–' + fmtRM(d[7]) : '') : '';
+    return `<div class="cl-item" onclick="openFromCluster(${JSON.stringify(String(d[14]))})">
+      <span class="cl-dot" style="background:${TIER_COLORS[tierOf(d[6])]}"></span>
+      <div><div class="cl-name">${esc(d[0])}</div>
+      <div class="cl-sub">${d[5] ? esc(d[5]) : ''}${priceStr ? ' · ' + priceStr : ''}${d[16] ? ' · ' + esc(d[16]) : ''}</div></div>
+    </div>`;
+  }).join('');
+  _hideFilterContent();
+  document.getElementById('projDetail').classList.remove('open');
+  document.getElementById('watchlistView').classList.remove('open');
+  document.getElementById('accountView').classList.remove('open');
+  el.classList.add('open');
+  if (panelEl.classList.contains('closed')) { panelEl.classList.remove('closed'); panelBtn.setAttribute('aria-expanded','true'); }
+  document.getElementById('panelBody').scrollTop = 0;
+}
+
+function closeClusterList() {
+  _clusterViewData = null;
+  document.getElementById('clusterView').classList.remove('open');
+  _showFilterContent();
+  document.getElementById('panelBody').scrollTop = 0;
+}
+
+function openFromCluster(pid) {
+  const entry = DATA.find(d => String(d[14]) === String(pid));
+  if (!entry) return;
+  _currentDetailProject = entry;
+  openProjectDetail();
 }
 
 // ---------- brochure image preview ----------
@@ -3502,6 +3571,18 @@ document.getElementById('nlabel').textContent = 'loading';
 
   buildMarkers();
   apply();
+
+  // Deep-link: ?pid=PROJECT_ID opens that property's detail on load
+  const _dlPid = new URLSearchParams(location.search).get('pid');
+  if (_dlPid) {
+    const _dlEntry = DATA.find(d => String(d[14]) === String(_dlPid));
+    if (_dlEntry) {
+      _currentDetailProject = _dlEntry;
+      openProjectDetail();
+      map.setView([_dlEntry[1], _dlEntry[2]], 14, {animate: false});
+    }
+  }
+
   // Repaint the state choropleth now that SSTATS is loaded
   stateLayer.setStyle(styleState);
   stateLayer.eachLayer(ly => {
