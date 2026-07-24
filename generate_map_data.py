@@ -94,6 +94,33 @@ def _sibling_correct(pid: str, la: float, lo: float):
     return la, lo
 
 
+def _sibling_snap_to_strict(pid: str, la: float, lo: float):
+    """For LOOSE-zone projects: snap to a tight cluster of strictly-on-land siblings.
+
+    Only applies when shapely is available. Caps movement at 0.12° (~13 km) to
+    avoid wild relocations caused by distantly-placed family members.
+    """
+    if not _USE_POLYGON:
+        return la, lo
+    fam = pid.rsplit('-', 1)[0] if '-' in pid else pid
+    siblings = [(sla, slo) for sla, slo in _family_valid.get(fam, [])
+                if not (abs(sla - la) < 1e-4 and abs(slo - lo) < 1e-4)
+                and not _is_placeholder(sla, slo)]
+    strict_siblings = [(sla, slo) for sla, slo in siblings
+                       if _MALAYSIA_STRICT.contains(_Pt(slo, sla))]
+    if len(strict_siblings) < 2:
+        return la, lo
+    s_lats = [s[0] for s in strict_siblings]
+    s_lons = [s[1] for s in strict_siblings]
+    if max(max(s_lats) - min(s_lats), max(s_lons) - min(s_lons)) > 0.06:
+        return la, lo  # strict siblings too spread to be a reliable cluster
+    med_lat = statistics.median(s_lats)
+    med_lon = statistics.median(s_lons)
+    if abs(la - med_lat) > 0.12 or abs(lo - med_lon) > 0.12:
+        return la, lo  # movement cap: avoid relocating > ~13 km
+    return med_lat, med_lon
+
+
 def clean_coords(raw_lat, raw_lon, pid: str = ''):
     """Return (lat, lon) if valid Malaysian coords.
 
@@ -134,7 +161,10 @@ def clean_coords(raw_lat, raw_lon, pid: str = ''):
         if _MALAYSIA_STRICT.contains(pt):
             return la, lo
         if _MALAYSIA_LOOSE.contains(pt):
-            # Near-coast: try sibling improvement, otherwise keep original
+            # Near-coast: prefer strict-on-land sibling cluster, then normal correction
+            cla, clo = _sibling_snap_to_strict(pid, la, lo)
+            if (cla != la or clo != lo) and _MALAYSIA_STRICT.contains(_Pt(clo, cla)):
+                return cla, clo
             cla, clo = _sibling_correct(pid, la, lo)
             if (cla != la or clo != lo) and _MALAYSIA_STRICT.contains(_Pt(clo, cla)):
                 return cla, clo
