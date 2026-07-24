@@ -33,9 +33,9 @@ os.makedirs(OUTDIR, exist_ok=True)
 
 
 def score_jpeg(jpeg_bytes: bytes) -> float:
-    """Score a JPEG by how likely it is to be a property cover/facade image.
-    Landscape images (wider than tall) score highest; floor plans (portrait)
-    and site maps (very wide) score low."""
+    """Score a JPEG by how likely it is to be a property photo/render.
+    Combines aspect ratio (landscape = good) with photo-likeness (smooth
+    gradients = good, text-heavy flyer = bad)."""
     try:
         img = Image.open(io.BytesIO(jpeg_bytes))
         w, h = img.size
@@ -44,19 +44,42 @@ def score_jpeg(jpeg_bytes: bytes) -> float:
     if h == 0:
         return 0.0
     ratio = w / h
-    if 1.2 <= ratio <= 2.5:   # ideal: landscape property hero / facade photo
-        return 1.0
-    if 1.0 <= ratio < 1.2:    # nearly square — possible but less likely cover
-        return 0.6
-    if ratio > 2.5:            # very wide: site plan / location map
-        return 0.25
-    return 0.1                 # portrait: floor plan
+
+    if 1.2 <= ratio <= 2.5:
+        ar_score = 1.0   # ideal landscape hero / facade
+    elif 1.0 <= ratio < 1.2:
+        ar_score = 0.6   # nearly square
+    elif ratio > 2.5:
+        ar_score = 0.25  # very wide: site plan / location map
+    else:
+        ar_score = 0.1   # portrait: floor plan
+
+    # Photo-likeness: count edges at small scale.
+    # Property photos have smooth gradients → low edge density.
+    # Marketing flyers with text overlays → high edge density.
+    try:
+        small = img.resize((64, 32), Image.LANCZOS).convert("L")
+        pix = small.load()
+        edges = sum(
+            1 for y in range(32) for x in range(63)
+            if abs(pix[x, y] - pix[x + 1, y]) > 25
+        )
+        edge_density = edges / (64 * 32)
+        # Property render: ~0.1–0.2  |  Text-heavy flyer: ~0.35+
+        photo_score = max(0.0, 1.0 - edge_density * 3)
+    except Exception:
+        photo_score = 0.5
+
+    return ar_score * 0.6 + photo_score * 0.4
 
 
 def extract_cover_jpeg(data: bytes) -> bytes | None:
     """Collect up to MAX_CANDIDATES embedded JPEGs ≥ MIN_JPEG_BYTES and return
-    the one most likely to be the property cover (scored by aspect ratio;
-    file size breaks ties — bigger raw bytes = higher quality image)."""
+    the one most likely to be the property cover photo.
+
+    Scoring: aspect ratio (60%) + photo-likeness/smoothness (40%).
+    Position in file acts as tiebreaker — earlier images tend to be clean
+    property renders; later ones tend to be composite marketing-flyer pages."""
     candidates: list[bytes] = []
     i = 0
     while i < len(data) - 3 and len(candidates) < MAX_CANDIDATES:
@@ -76,7 +99,15 @@ def extract_cover_jpeg(data: bytes) -> bytes | None:
             i += 1
     if not candidates:
         return None
-    return max(candidates, key=lambda b: (score_jpeg(b), len(b)))
+    n = len(candidates)
+    # Earlier position bonus (0→0.3) so clean cover image beats a larger
+    # composite flyer page that appears later in the PDF stream.
+    return max(
+        candidates,
+        key=lambda b: (
+            score_jpeg(b) + (1 - candidates.index(b) / max(1, n)) * 0.3,
+        ),
+    )
 
 
 def compress(jpeg_bytes: bytes) -> bytes:
@@ -94,10 +125,13 @@ def compress(jpeg_bytes: bytes) -> bytes:
     return result
 
 
+REEXTRACT = "--reextract" in sys.argv
+
+
 def process(project_id: str, url: str) -> tuple[str, str]:
     """Returns (project_id, 'ok'|'skip'|'error:<reason>')."""
     out_path = os.path.join(OUTDIR, f"{project_id}.jpg")
-    if os.path.exists(out_path):
+    if os.path.exists(out_path) and not REEXTRACT:
         return project_id, "skip"
     try:
         req = urllib.request.Request(url, headers=HEADERS)
@@ -131,7 +165,7 @@ for p in raw["projects"]:
     url = detail.get("brochure_url") or ""
     if not pid or not url:
         continue
-    if os.path.exists(os.path.join(OUTDIR, f"{pid}.jpg")):
+    if not REEXTRACT and os.path.exists(os.path.join(OUTDIR, f"{pid}.jpg")):
         continue
     work.append((str(pid), url))
 
