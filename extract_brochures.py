@@ -1,12 +1,19 @@
 """
 extract_brochures.py — downloads brochure PDFs from hims.kpkt.gov.my,
-picks the best embedded JPEG using Claude Vision (Haiku), compresses to
-≤90KB, and saves to b/{id}.jpg.
+picks the best embedded JPEG using CLIP (zero-shot ML, no API key needed),
+compresses to ≤90KB, and saves to b/{id}.jpg.
 
-Run automatically 4x daily by GitHub Actions for new projects.
-Pass --reextract to reprocess all existing images (e.g. after algorithm update).
+Runs automatically 4x daily via GitHub Actions for new projects.
+Pass --reextract to reprocess all existing images (e.g. after algorithm updates).
+
+How the image selection works:
+  CLIP (openai/clip-vit-base-patch32) is a free open-source vision model that
+  scores images against text descriptions. Each candidate JPEG is scored against
+  "an exterior photo or render of a residential building" — the highest-scoring
+  image wins. Falls back to aspect-ratio + edge-density heuristics if
+  transformers/torch are not installed.
 """
-import json, os, io, time, sys, base64, urllib.request
+import json, os, io, time, sys, urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 try:
@@ -15,21 +22,41 @@ except ImportError:
     print("Pillow not installed — run: pip3 install Pillow")
     sys.exit(1)
 
+# ── CLIP setup (optional — graceful fallback to heuristics if missing) ────
+
+USE_ML = False
+_clip_model = None
+_clip_processor = None
+
 try:
-    import anthropic
-    _claude = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
-    USE_CLAUDE = bool(os.environ.get("ANTHROPIC_API_KEY"))
-except ImportError:
-    _claude = None
-    USE_CLAUDE = False
+    from transformers import CLIPProcessor, CLIPModel
+    import torch
+
+    print("Loading CLIP model (openai/clip-vit-base-patch32) …")
+    _clip_model     = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+    _clip_processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    _clip_model.eval()
+    USE_ML = True
+    print("  CLIP ready.")
+except Exception as e:
+    print(f"  CLIP not available ({e}) — using heuristic fallback.")
+
+# Text descriptions CLIP scores each image against.
+# Index 0 is what we want; higher probability = better pick.
+_PROMPTS = [
+    "an exterior photo or architectural render of a residential building or house",
+    "a marketing brochure flyer with price text bullet points and coloured boxes",
+    "a floor plan blueprint showing room layouts and dimensions",
+    "a location map or site plan aerial view",
+]
 
 OUTDIR         = "b"
-MAX_W          = 900      # px
-QUALITY        = 68       # JPEG quality target
-MAX_SIZE       = 90_000   # bytes
-WORKERS        = 12
-DELAY          = 0.15     # seconds between requests per worker
-MIN_JPEG_BYTES = 40_000   # skip logos / thumbnails
+MAX_W          = 900
+QUALITY        = 68
+MAX_SIZE       = 90_000
+WORKERS        = 8 if USE_ML else 12   # fewer workers when doing ML inference
+DELAY          = 0.15
+MIN_JPEG_BYTES = 40_000
 MAX_CANDIDATES = 8
 
 HEADERS = {
@@ -41,7 +68,22 @@ os.makedirs(OUTDIR, exist_ok=True)
 REEXTRACT = "--reextract" in sys.argv
 
 
-# ── heuristic scorer (fallback when Claude is unavailable) ────────────────
+# ── CLIP scorer ────────────────────────────────────────────────────────────
+
+def _clip_score_property(jpeg_bytes: bytes) -> float:
+    """Return the probability that this image is a property exterior photo/render."""
+    import torch
+    img = Image.open(io.BytesIO(jpeg_bytes)).convert("RGB")
+    inputs = _clip_processor(
+        text=_PROMPTS, images=img, return_tensors="pt", padding=True
+    )
+    with torch.no_grad():
+        outputs = _clip_model(**inputs)
+        probs = outputs.logits_per_image.softmax(dim=1)[0]
+    return probs[0].item()  # probability for prompt index 0
+
+
+# ── heuristic scorer (fallback) ────────────────────────────────────────────
 
 def _heuristic_score(jpeg_bytes: bytes, position: int, total: int) -> float:
     try:
@@ -77,62 +119,11 @@ def _heuristic_score(jpeg_bytes: bytes, position: int, total: int) -> float:
     return ar_score * 0.6 + photo_score * 0.4 + pos_bonus
 
 
-def _pick_heuristic(candidates: list[bytes]) -> bytes:
-    return max(
-        enumerate(candidates),
-        key=lambda t: _heuristic_score(t[1], t[0], len(candidates)),
-    )[1]
-
-
-# ── Claude Vision picker ──────────────────────────────────────────────────
-
-def _pick_with_claude(candidates: list[bytes]) -> bytes:
-    """Ask Claude Haiku which candidate is the best property thumbnail."""
-    if len(candidates) == 1:
-        return candidates[0]
-
-    content = []
-    for i, b in enumerate(candidates, 1):
-        content.append({
-            "type": "text",
-            "text": f"Image {i}:"
-        })
-        content.append({
-            "type": "image",
-            "source": {
-                "type": "base64",
-                "media_type": "image/jpeg",
-                "data": base64.standard_b64encode(b).decode(),
-            },
-        })
-
-    content.append({
-        "type": "text",
-        "text": (
-            f"These {len(candidates)} images were extracted from a Malaysian property "
-            "brochure PDF. Reply with ONLY a single number — the index (1 to "
-            f"{len(candidates)}) of the image most suitable as a property listing "
-            "thumbnail. Prefer exterior renders or photos of the building. "
-            "Reject floor plans, location maps, and marketing flyers with price "
-            "text or bullet points overlaid on the image."
-        ),
-    })
-
-    try:
-        resp = _claude.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=8,
-            messages=[{"role": "user", "content": content}],
-        )
-        idx = int(resp.content[0].text.strip()) - 1
-        return candidates[max(0, min(idx, len(candidates) - 1))]
-    except Exception:
-        return _pick_heuristic(candidates)
-
-
 # ── JPEG extraction from raw PDF bytes ────────────────────────────────────
 
 def extract_cover_jpeg(data: bytes) -> bytes | None:
+    """Scan PDF bytes for embedded JPEGs, return the one that looks most
+    like a property exterior photo."""
     candidates: list[bytes] = []
     i = 0
     while i < len(data) - 3 and len(candidates) < MAX_CANDIDATES:
@@ -153,9 +144,14 @@ def extract_cover_jpeg(data: bytes) -> bytes | None:
 
     if not candidates:
         return None
-    if USE_CLAUDE:
-        return _pick_with_claude(candidates)
-    return _pick_heuristic(candidates)
+
+    if USE_ML:
+        return max(candidates, key=_clip_score_property)
+
+    return max(
+        enumerate(candidates),
+        key=lambda t: _heuristic_score(t[1], t[0], len(candidates)),
+    )[1]
 
 
 # ── compression ───────────────────────────────────────────────────────────
@@ -207,7 +203,7 @@ print("Loading teduh_projects.json …")
 with open("teduh_projects.json") as f:
     raw = json.load(f)
 
-mode = "Claude Vision" if USE_CLAUDE else "heuristic (no API key)"
+mode = "CLIP ML" if USE_ML else "heuristic (install transformers + torch for ML)"
 print(f"  Image selection: {mode}")
 if REEXTRACT:
     print("  Mode: --reextract (overwriting existing images)")
@@ -231,10 +227,7 @@ if not work:
     sys.exit(0)
 
 ok = err = 0
-# Claude Vision calls are sequential per project so use fewer workers to
-# avoid hammering the Anthropic API; heuristic mode can use full concurrency.
-workers = 4 if USE_CLAUDE else WORKERS
-with ThreadPoolExecutor(max_workers=workers) as pool:
+with ThreadPoolExecutor(max_workers=WORKERS) as pool:
     futures = {pool.submit(process, pid, url): pid for pid, url in work}
     for i, fut in enumerate(as_completed(futures), 1):
         pid, status = fut.result()

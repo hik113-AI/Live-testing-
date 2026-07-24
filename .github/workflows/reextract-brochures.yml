@@ -1,8 +1,8 @@
 name: Re-extract all brochure images
 
-# Triggered manually from the GitHub Actions tab.
+# Triggered manually from the GitHub Actions tab — no local machine needed.
 # Use this when the image selection algorithm has been updated and you want
-# to reprocess all existing b/ images — no local machine needed.
+# to reprocess all existing b/ images with CLIP ML scoring.
 
 on:
   workflow_dispatch:
@@ -10,12 +10,10 @@ on:
 jobs:
   reextract:
     runs-on: ubuntu-latest
-    timeout-minutes: 360   # up to 6h for ~2,700 projects via Claude Vision
+    timeout-minutes: 360
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          lfs: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,12 +22,18 @@ jobs:
           cache: 'pip'
           cache-dependency-path: requirements.txt
 
-      - name: Install Python dependencies
-        run: pip install -r requirements.txt --quiet
+      - name: Cache CLIP model weights
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: clip-vit-base-patch32
 
-      - name: Re-extract all brochure images (Claude Vision)
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      - name: Install Python dependencies
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu --quiet
+          pip install -r requirements.txt --quiet
+
+      - name: Re-extract all brochure images with CLIP
         run: python3 extract_brochures.py --reextract
 
       - name: Commit updated images
@@ -37,5 +41,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add b/
-          git diff --cached --quiet || git commit -m "chore: re-extract brochure images with Claude Vision"
+          git diff --cached --quiet || git commit -m "chore: re-extract brochure images with CLIP ML scoring"
           git pull --rebase && git push

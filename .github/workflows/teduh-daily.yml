@@ -3,7 +3,6 @@ name: TEDUH crawler (4x daily)
 on:
   schedule:
     # 4 runs per day at 01, 07, 13, 19 UTC (09:00 / 15:00 / 21:00 / 03:00 MYT)
-    # Batch number is derived from the hour: 1→0, 7→1, 13→2, 19→3
     - cron: '0 1 * * *'
     - cron: '0 7 * * *'
     - cron: '0 13 * * *'
@@ -29,8 +28,16 @@ jobs:
           cache: 'pip'
           cache-dependency-path: requirements.txt
 
+      - name: Cache CLIP model weights
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: clip-vit-base-patch32
+
       - name: Install Python dependencies
-        run: pip install -r requirements.txt --quiet
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu --quiet
+          pip install -r requirements.txt --quiet
 
       - name: Determine batch number
         id: batch
@@ -44,9 +51,6 @@ jobs:
           echo "Running batch $BATCH of 4"
 
       # Listing refresh runs once per day on batch 0 to pick up new projects.
-      # Skipped on batches 1–3 to save time and API load.
-      # continue-on-error so a transient TEDUH API timeout doesn't kill the
-      # detail crawl — the detail step will use the existing teduh_projects.json.
       - name: Refresh project listing (batch 0 only)
         if: steps.batch.outputs.BATCH == '0'
         continue-on-error: true
@@ -62,8 +66,6 @@ jobs:
       - name: Extract brochure images for new projects
         continue-on-error: true
         timeout-minutes: 55
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
         run: python3 extract_brochures.py
 
       - name: Commit and push updated data
