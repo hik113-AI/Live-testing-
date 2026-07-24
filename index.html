@@ -94,12 +94,14 @@
 
   .search{position:relative}
   .search input{
-    width:100%;padding:9px 12px 9px 34px;border:1.5px solid rgba(27,42,36,.15);
+    width:100%;padding:9px 32px 9px 34px;border:1.5px solid rgba(27,42,36,.15);
     border-radius:10px;background:#fff;font-size:13px;color:var(--ink);outline:none;
     transition:border-color .18s,box-shadow .18s;
   }
   .search input:focus{border-color:var(--t1);box-shadow:0 0 0 3px rgba(42,157,143,.12)}
   .search svg{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4}
+  .search-clear{position:absolute;right:9px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:17px;line-height:1;color:var(--ink-soft);padding:2px 4px;border-radius:50%;transition:color .12s,background .12s}
+  .search-clear:hover{color:var(--ink);background:rgba(27,42,36,.08)}
 
   .flabel{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 6px}
 
@@ -582,9 +584,11 @@
     box-shadow:0 1px 4px rgba(0,0,0,.35);animation:det-pulse 1.8s ease-in-out infinite}
 
   /* cluster list panel */
-  .cl-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(27,42,36,.07);cursor:pointer;transition:background .1s}
+  .cl-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(27,42,36,.07);cursor:pointer;transition:background .1s;width:100%;background:none;border-left:none;border-right:none;border-top:none;text-align:left;font:inherit}
   .cl-item:last-child{border-bottom:none}
+  .cl-item:hover{background:rgba(42,157,143,.04)}
   .cl-item:active{background:rgba(42,157,143,.07)}
+  .cl-item:focus-visible{outline:2px solid var(--t1);outline-offset:-2px;border-radius:4px}
   .cl-dot{width:9px;height:9px;border-radius:50%;flex:none;margin-top:2px}
   .cl-name{font-size:12.5px;font-weight:600;color:var(--ink);line-height:1.3}
   .cl-name:hover{color:var(--t1)}
@@ -1084,6 +1088,7 @@
         <div class="search">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
           <input id="q" type="search" placeholder="Search project or developer…" aria-label="Search project or developer">
+          <button id="qClear" class="search-clear" aria-label="Clear search" style="display:none">×</button>
         </div>
       </div>
 
@@ -1705,11 +1710,11 @@ function openClusterList(items) {
   <div class="sidebar-sec is-first">${items.length} projects at this location</div>` +
   sorted.map(d => {
     const priceStr = d[6] ? fmtRM(d[6]) + (d[7] > d[6] ? '–' + fmtRM(d[7]) : '') : '';
-    return `<div class="cl-item" onclick="openFromCluster(${JSON.stringify(String(d[14]))})">
+    return `<button class="cl-item" onclick="openFromCluster(${JSON.stringify(String(d[14]))})">
       <span class="cl-dot" style="background:${TIER_COLORS[tierOf(d[6])]}"></span>
       <div><div class="cl-name">${esc(d[0])}</div>
       <div class="cl-sub">${d[5] ? esc(d[5]) : ''}${priceStr ? ' · ' + priceStr : ''}${d[16] ? ' · ' + esc(d[16]) : ''}</div></div>
-    </div>`;
+    </button>`;
   }).join('');
   _hideFilterContent();
   document.getElementById('projDetail').classList.remove('open');
@@ -1790,7 +1795,8 @@ function popupHTML(d){
   const beds = d[19] || ''; const unitType = (d[20] || '').split('/')[0].trim();
   const statusLabel = ten==='active' ? 'Active' : ten==='done' ? 'Completed' : null;
   _currentDetailProject = d;
-  popupShareData = { name, dev, url: location.origin + '?lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5) };
+  _clusterViewData = null;
+  popupShareData = { name, dev, url: location.origin + '?pid=' + encodeURIComponent(pid) };
 
   // Floor area (m² → sqft) — no locale commas in stat cell to keep it compact
   const sqftMin = fmin ? Math.round(+fmin * 10.764) : null;
@@ -2395,9 +2401,34 @@ function apply(){
 
 // search (debounced)
 let t;
-document.getElementById('q').addEventListener('input', e => {
+const _qEl = document.getElementById('q');
+const _qClear = document.getElementById('qClear');
+
+function _updateQClear() {
+  _qClear.style.display = _qEl.value.length ? '' : 'none';
+}
+
+_qEl.addEventListener('input', e => {
   clearTimeout(t);
+  _updateQClear();
   t = setTimeout(() => { state.q = e.target.value.trim().toLowerCase(); apply(); }, 250);
+});
+
+_qClear.addEventListener('click', () => {
+  _qEl.value = '';
+  state.q = '';
+  _updateQClear();
+  _qEl.focus();
+  apply();
+});
+
+// '/' key focuses search
+document.addEventListener('keydown', e => {
+  if (e.key === '/' && document.activeElement !== _qEl && e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+    e.preventDefault();
+    _qEl.focus();
+    _qEl.select();
+  }
 });
 
 // radio groups (single-select)
@@ -2453,7 +2484,7 @@ document.querySelectorAll('#sidebarTiers .tier-row-btn').forEach(btn => {
 document.getElementById('reset').addEventListener('click', () => {
   state.q=''; state.type='all'; state.ten='all'; state.tiers = new Set([0,1,2,3]);
   state.beds='all'; state.year='all'; state.devFilter='';
-  document.getElementById('q').value='';
+  _qEl.value=''; _updateQClear();
   document.querySelectorAll('#typeChips .chip').forEach(c => c.classList.toggle('on', c.dataset.type==='all'));
   document.querySelectorAll('#tenChips .chip').forEach(c => c.classList.toggle('on', c.dataset.ten==='all'));
   syncTierVisuals();
@@ -3898,9 +3929,9 @@ function openSavedProject(pid) {
   const entry = DATA.find(d => String(d[14]) === String(pid));
   if (!entry) return;
   _currentDetailProject = entry;
+  _clusterViewData = null;
   closeWatchlist();
   openProjectDetail();
-  map.flyTo([entry[1], entry[2]], 14, { duration: 1.2 });
 }
 
 // ── view helpers ─────────────────────────────────────────────────
