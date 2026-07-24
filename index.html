@@ -1564,9 +1564,9 @@ function openProjectDetail() {
       <h3>${esc(name)}</h3>
       ${dev ? `<div class="pop-dev"><button class="pop-dev-link" onclick="filterByDev(${JSON.stringify(dev)});closeProjectDetail()" title="Show all projects by this developer">${esc(dev)}</button></div>` : ''}
       ${state ? `<div class="pop-location">${esc(state)}</div>` : ''}
-      ${hasOffenses ? `<div style="margin-top:6px;padding:7px 9px;border-radius:6px;background:rgba(155,34,38,.08);border:1px solid rgba(155,34,38,.2)">
-        <div style="font-size:9.5px;font-weight:700;color:#9B2226;margin-bottom:3px">⚠ KPKT Violations on Record</div>
-        <div style="font-size:10.5px;color:rgba(247,245,240,.65);line-height:1.45">This developer has regulatory offenses recorded by KPKT. Buyers should exercise additional due diligence before committing.</div>
+      ${hasOffenses ? `<div style="margin-top:6px;padding:7px 9px;border-radius:6px;background:rgba(155,34,38,.18);border:1px solid rgba(255,100,100,.3)">
+        <div style="font-size:9.5px;font-weight:700;color:#FF9090;margin-bottom:3px">⚠ KPKT Violations on Record</div>
+        <div style="font-size:10.5px;color:rgba(247,245,240,.85);line-height:1.45">This developer has regulatory offenses recorded by KPKT. Buyers should exercise additional due diligence before committing.</div>
       </div>` : ''}
       ${momentumBadge}
     </div>
