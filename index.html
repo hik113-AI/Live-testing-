@@ -59,7 +59,7 @@
   .panel-head .eyebrow{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#C9A227;margin-bottom:5px}
   .panel-head h1{font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:22px;line-height:1.18}
   .panel-head .sub{font-size:11px;color:rgba(247,245,240,.65);margin-top:6px;line-height:1.5}
-  .panel-body{padding:10px 12px 14px;background:#F0EDE6;max-height:calc(100vh - 175px);overflow-y:auto;overscroll-behavior:contain;
+  .panel-body{padding:10px 12px 14px;background:#F0EDE6;max-height:calc(100vh - 215px);overflow-y:auto;overscroll-behavior:contain;
     transform:scaleY(1);transform-origin:top;opacity:1;
     transition:max-height 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.25s ease,transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
   .panel-body::-webkit-scrollbar{width:8px}
@@ -581,7 +581,7 @@
     .ad-top-banner{display:none}
     /* Panel */
     .panel{width:calc(100% - 24px);left:12px;top:12px}
-    .panel-body{max-height:58vh}
+    .panel-body{max-height:62vh}
     /* Bottom-sheet panels — full-width, anchored to bottom, rounded top corners */
     .statcard{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
     .rt-report{width:100%;left:0;right:0;top:auto;bottom:0;max-height:72%;border-radius:14px 14px 0 0}
@@ -1476,6 +1476,7 @@ function nativeShare() {
 
 // ---------- project detail panel ----------
 let _currentDetailProject = null;
+let _detailPin = null;
 
 function openProjectDetail() {
   const d = _currentDetailProject;
@@ -1645,12 +1646,22 @@ function openProjectDetail() {
     panelBtn.setAttribute('aria-expanded', 'true');
   }
   map.closePopup();
+  if (_detailPin) { _detailPin.remove(); _detailPin = null; }
+  if (lat && lon) {
+    _detailPin = L.circleMarker([lat, lon], {
+      radius: 9, color: '#fff', weight: 2.5,
+      fillColor: '#C9A227', fillOpacity: 1,
+      interactive: false
+    }).addTo(map);
+    map.setView([lat, lon], Math.max(map.getZoom(), 14), {animate: true, duration: 0.4});
+  }
   document.getElementById('panelBody').scrollTop = 0;
 }
 
 function closeProjectDetail() {
   document.getElementById('projDetail').classList.remove('open');
   _showFilterContent();
+  if (_detailPin) { _detailPin.remove(); _detailPin = null; }
   document.getElementById('panelBody').scrollTop = 0;
 }
 
