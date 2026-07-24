@@ -18,6 +18,9 @@
 <meta name="twitter:title" content="New Property Launches · Malaysia">
 <meta name="twitter:description" content="Interactive map of 2,800+ new launches. Filter by price, developer, type, and status.">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"Malaysia New Launches Explorer","url":"https://interstellarsanctuary.com","description":"Interactive map of 2,800+ new private property launches across Malaysia (2021–2025). Powered by live TEDUH/KPKT data.","applicationCategory":"RealEstate","operatingSystem":"Web browser"}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
 <style>
@@ -30,7 +33,7 @@
   *{box-sizing:border-box;margin:0}
   html,body{height:100%;width:100%;margin:0;padding:0;overflow:hidden}
   #map{position:fixed;top:0;left:0;width:100vw;height:100vh}
-  body{font:14px/1.45 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
+  body{font:14px/1.45 "Inter",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--ink)}
   #map{background:#DCE6E3}
   .leaflet-zoom-anim .leaflet-zoom-animated{transition:transform 0.05s ease-out}
 
@@ -56,7 +59,7 @@
   .panel-head .eyebrow{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#C9A227;margin-bottom:5px}
   .panel-head h1{font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:22px;line-height:1.18}
   .panel-head .sub{font-size:11px;color:rgba(247,245,240,.65);margin-top:6px;line-height:1.5}
-  .panel-body{padding:14px 16px 16px;max-height:calc(100vh - 148px);overflow-y:auto;overscroll-behavior:contain;
+  .panel-body{padding:10px 12px 14px;background:#F0EDE6;max-height:calc(100vh - 148px);overflow-y:auto;overscroll-behavior:contain;
     transform:scaleY(1);transform-origin:top;opacity:1;
     transition:max-height 0.3s cubic-bezier(0.34,1.56,0.64,1),opacity 0.25s ease,transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
   .panel-body::-webkit-scrollbar{width:8px}
@@ -64,9 +67,11 @@
   .panel-body::-webkit-scrollbar-track{background:transparent}
 
   /* sidebar section structure */
-  .sidebar-sec{font-size:10.5px;letter-spacing:.01em;text-transform:none;font-weight:600;
-    color:var(--ink-soft);padding:18px 0 4px;opacity:.5}
-  .sidebar-sec.is-first{padding-top:2px}
+  .sidebar-sec{font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;
+    color:var(--ink-soft);padding:18px 0 6px;opacity:.5;
+    display:flex;align-items:center;gap:8px}
+  .sidebar-sec::after{content:'';flex:1;height:1px;background:rgba(27,42,36,.45)}
+  .sidebar-sec.is-first{padding-top:4px}
   .panel-search{margin-bottom:10px}
   .qf-group{margin-bottom:9px}
   .qf-tag{font-size:9px;letter-spacing:.11em;text-transform:uppercase;font-weight:600;
@@ -78,16 +83,16 @@
   .chips-xs .chip{font-size:10.5px;padding:3px 10px;border-color:rgba(27,42,36,.13)}
   .chips-xs .chip.on{background:rgba(27,42,36,.07);border-color:rgba(27,42,36,.5);color:var(--ink);font-weight:600}
 
-  .tier-rows{display:flex;flex-direction:column;gap:1px}
-  .tier-row-btn{display:flex;align-items:center;gap:9px;padding:5px 7px;border-radius:7px;
+  .tier-rows{display:flex;flex-direction:column;gap:0;margin:0 -12px}
+  .tier-row-btn{display:flex;align-items:center;gap:9px;padding:7px 12px;border-radius:0;
     cursor:pointer;border:none;background:transparent;font:inherit;text-align:left;
     font-size:12.5px;color:var(--ink);width:100%;transition:background .14s}
-  .tier-row-btn:hover{background:rgba(27,42,36,.06)}
+  .tier-row-btn:hover{background:rgba(27,42,36,.05)}
   .tier-row-btn.off{opacity:.28}
   .tier-row-btn .tr-dot{width:13px;height:13px;flex:none;border-radius:50%;
     border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3),0 0 0 1px rgba(0,0,0,.1)}
 
-  .search{position:relative;margin-bottom:12px}
+  .search{position:relative}
   .search input{
     width:100%;padding:9px 12px 9px 34px;border:1.5px solid rgba(27,42,36,.15);
     border-radius:10px;background:#fff;font-size:13px;color:var(--ink);outline:none;
@@ -98,30 +103,38 @@
 
   .flabel{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin:10px 0 6px}
 
-  /* ---------- accordion sections ---------- */
-  .acc{}
-  .acc-head{width:100%;background:none;border:none;cursor:pointer;display:flex;align-items:center;
-    justify-content:space-between;gap:10px;padding:9px 2px;font:inherit;color:var(--ink);
-    font-size:13px;letter-spacing:0;text-transform:none;font-weight:500;
-    text-align:left;-webkit-tap-highlight-color:transparent;transition:color .15s,opacity .15s}
-  .acc-head:hover{opacity:.65}
-  .acc.open > .acc-head{color:var(--t1);font-weight:600;opacity:1}
+  /* ---------- accordion sections (card style) ---------- */
+  .acc{background:#fff;border-radius:10px;margin-bottom:3px;
+    border:1px solid rgba(27,42,36,.09);overflow:hidden;
+    box-shadow:0 1px 3px rgba(27,42,36,.06);transition:box-shadow .18s,border-color .18s}
+  .acc.open{border-color:rgba(42,157,143,.28);
+    box-shadow:0 0 0 1px rgba(42,157,143,.12),0 4px 14px rgba(42,157,143,.1)}
+  .acc-head{width:100%;border:none;cursor:pointer;display:flex;align-items:center;
+    justify-content:space-between;gap:10px;padding:10px 12px;
+    font:inherit;color:var(--ink);background:transparent;
+    font-size:12.5px;letter-spacing:0;text-transform:none;font-weight:600;
+    text-align:left;-webkit-tap-highlight-color:transparent;transition:background .12s,color .15s}
+  .acc-head:hover{background:rgba(27,42,36,.04)}
+  .acc-head-l{display:inline-flex;align-items:center;gap:8px}
+  .acc-icon{width:14px;height:14px;flex:none;color:var(--ink);opacity:.35;transition:opacity .15s,color .15s}
+  .acc.open > .acc-head .acc-icon{opacity:.75;color:var(--t1)}
+  .acc.open > .acc-head{color:var(--t1)}
   .acc-head-r{display:flex;align-items:center;gap:6px;flex:none}
-  .acc-val{font-size:11px;letter-spacing:0;text-transform:none;font-weight:600;
+  .acc-val{font-size:11px;letter-spacing:0;text-transform:none;font-weight:700;
     color:var(--t1);opacity:0;white-space:nowrap;transition:opacity .15s}
   .acc-val.active{opacity:1}
-  .acc-head:focus-visible{outline:2px solid var(--t1);outline-offset:2px;border-radius:6px}
-  .acc-chev{opacity:.38;transition:transform .2s ease;flex:none}
+  .acc-head:focus-visible{outline:2px solid var(--t1);outline-offset:-2px}
+  .acc-chev{opacity:.35;transition:transform .2s ease;flex:none}
   .acc:not(.open) .acc-chev{transform:rotate(-90deg)}
   .acc-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .25s ease,opacity .2s ease;opacity:1}
-  .acc-body > .acc-inner{overflow:hidden;min-height:0;padding-bottom:14px}
+  .acc-body > .acc-inner{overflow:hidden;min-height:0;padding:0 12px 12px}
   .acc:not(.open) .acc-body{grid-template-rows:0fr;opacity:0}
   .acc:not(.open) .acc-body > .acc-inner{padding-bottom:0}
 
   /* ---------- radio list (single-select groups) ---------- */
-  .radios{display:flex;flex-direction:column;gap:2px}
-  .radio{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;
-    font-size:13px;color:var(--ink);user-select:none;transition:background .12s}
+  .radios{display:flex;flex-direction:column;gap:1px;margin:0 -12px}
+  .radio{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:0;cursor:pointer;
+    font-size:12.5px;color:var(--ink);user-select:none;transition:background .12s}
   .radio:hover{background:rgba(27,42,36,.05)}
   .radio input{position:absolute;opacity:0;pointer-events:none}
   .radio span{flex:1}
@@ -133,9 +146,9 @@
   .radio:has(input:focus-visible)::before{outline:2px solid var(--t1);outline-offset:2px}
 
   /* ---------- toggle switches (multi-select groups) ---------- */
-  .toggles{display:flex;flex-direction:column;gap:2px}
-  .toggle{display:flex;align-items:center;gap:10px;padding:7px 8px;border-radius:8px;cursor:pointer;
-    font-size:13px;color:var(--ink);user-select:none;transition:background .12s}
+  .toggles{display:flex;flex-direction:column;gap:1px;margin:0 -12px}
+  .toggle{display:flex;align-items:center;gap:10px;padding:6px 12px;border-radius:0;cursor:pointer;
+    font-size:12.5px;color:var(--ink);user-select:none;transition:background .12s}
   .toggle:hover{background:rgba(27,42,36,.05)}
   .toggle span:first-child{flex:1}
   .toggle input{position:absolute;opacity:0;pointer-events:none}
@@ -154,21 +167,22 @@
     transition:background .14s,border-color .14s,color .14s;
   }
   .chip:hover{border-color:rgba(27,42,36,.3);color:var(--ink)}
-  .chip.on{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  .chip.on{background:var(--t1);border-color:var(--t1);color:#fff}
   .chip:focus-visible{outline:2px solid var(--t1);outline-offset:2px}
 
   /* view-mode chips: segmented control */
-  #viewChips{background:rgba(27,42,36,.07);border-radius:99px;padding:3px;gap:3px;flex-wrap:nowrap}
+  #viewChips{background:rgba(27,42,36,.1);border-radius:99px;padding:3px;gap:3px;flex-wrap:nowrap}
   #viewChips .chip{flex:1;border-color:transparent;background:transparent;color:var(--ink-soft);
     padding:6px 13px;font-size:12px;font-weight:500;text-align:center;transition:color .14s}
   #viewChips .chip.on{background:#fff;color:var(--ink);font-weight:600;border-color:transparent;
     box-shadow:0 1px 6px rgba(27,42,36,.12),0 0 0 1px rgba(27,42,36,.06)}
 
   .count{
-    margin-top:14px;padding-top:13px;border-top:1px solid rgba(27,42,36,.12);
+    margin-top:10px;padding:12px 14px;background:#fff;border-radius:10px;
+    border:1px solid rgba(27,42,36,.09);border-top:3px solid var(--t1);
     font-size:12.5px;color:var(--ink-soft);
   }
-  .count b{color:var(--ink);font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;display:block;line-height:1;margin-bottom:2px}
+  .count b{color:var(--ink);font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;display:block;line-height:1;margin-bottom:2px}
   .count-btns{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
   .reset{background:#fff;border:1.5px solid rgba(27,42,36,.18);color:var(--ink-soft);border-radius:99px;
     font-size:11.5px;cursor:pointer;padding:5px 13px;text-decoration:none;display:none;
@@ -200,7 +214,7 @@
   .lrow:hover{background:rgba(27,42,36,.06)}
   .lrow.off{opacity:.32}
   .dot{width:14px;height:14px;border-radius:50%;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35),0 0 0 1px rgba(0,0,0,.1);flex:none}
-  .lhint{font-size:10px;color:var(--ink-soft);margin-top:6px;opacity:.7}
+  .lhint{font-size:11px;color:var(--ink-soft);margin-top:6px;opacity:.65;line-height:1.5}
   .leg-head{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;
     background:none;border:none;padding:2px 2px 4px;cursor:pointer;color:var(--ink)}
   .leg-head:focus-visible{outline:2px solid var(--t1);outline-offset:2px;border-radius:6px}
@@ -256,7 +270,7 @@
   .toggle.am-mall:has(input:checked) .tk{background:#9B6DD4}
 
   /* ---------- ad slot ---------- */
-  .ad-slot{margin-top:12px;padding-top:12px;border-top:1px solid rgba(27,42,36,.1)}
+  .ad-slot{margin-top:10px}
   .ad-label{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(27,42,36,.35);margin-bottom:5px}
   .ad-unit{border:1px solid rgba(27,42,36,.12);border-radius:9px;padding:10px 12px;
     background:#fff;display:flex;align-items:center;gap:10px;cursor:pointer;
@@ -284,19 +298,35 @@
   .ad-top-cta:hover{background:#27443A}
   .leaflet-popup-content{margin:0;width:auto !important}
   .pop{width:310px;box-sizing:border-box;overflow:hidden}
-  .pop-hdr{background:#143C2B;color:#F7F5F0;padding:11px 16px 11px}
+  .pop-hdr{background:linear-gradient(145deg,#1e5040 0%,#0e2a1a 100%);color:#F7F5F0;padding:12px 16px 12px}
   .pop-hdr .pop-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}
-  .pop-hdr .tag{display:inline-block;font-size:9px;letter-spacing:.13em;text-transform:uppercase;
+  .pop-hdr .tag{display:inline-block;font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;
     padding:3px 8px;border-radius:4px;background:rgba(255,255,255,.14);color:#F7F5F0}
   .pop-hdr .tag-status{background:rgba(201,162,39,.28);color:#F3D87A}
   .pop-hdr h3{font-family:Georgia,serif;font-size:17px;line-height:1.25;margin-bottom:3px}
   .pop-hdr .pop-dev{font-size:11.5px;color:rgba(247,245,240,.6)}
   .pop-hdr .pop-location{font-size:10.5px;color:rgba(247,245,240,.45);margin-top:2px;letter-spacing:.02em}
-  .pop-body{padding:10px 16px 10px}
-  .pop-price{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;color:#143C2B;margin-bottom:8px;line-height:1.2}
-  .pop-price span{font-size:11px;font-weight:400;color:var(--ink-soft)}
+  .pop-body{padding:12px 16px 0}
+  .pop-price-lbl{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);opacity:.65;margin-bottom:3px}
+  .pop-price{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1.1;margin-bottom:10px}
+  .pop-price .pop-price-to{font-size:14px;font-weight:500;color:var(--ink-soft);margin-left:2px}
+  .pop-quick-stats{display:flex;border-top:1px solid rgba(27,42,36,.09);margin:0 -16px}
+  .pop-stat{flex:1;text-align:center;padding:9px 4px;border-right:1px solid rgba(27,42,36,.07)}
+  .pop-stat:last-child{border-right:none}
+  .pop-stat-v{font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pop-stat-k{font-size:8.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);opacity:.65;margin-top:2px}
+  /* sold availability bar */
+  .pop-sold{padding:10px 16px 12px;border-top:1px solid rgba(27,42,36,.08)}
+  .pop-sold-track{height:5px;background:rgba(27,42,36,.1);border-radius:99px;overflow:hidden;margin-bottom:6px}
+  .pop-sold-fill{height:100%;border-radius:99px;background:var(--t1);transition:width .4s cubic-bezier(.34,1.56,.64,1)}
+  .pop-sold-fill.high{background:var(--t2)}
+  .pop-sold-fill.critical{background:var(--t3)}
+  .pop-sold-lbl{font-size:10.5px;color:var(--ink-soft);display:flex;justify-content:space-between;align-items:center}
+  .pop-sold-lbl strong{color:var(--ink);font-weight:700;font-variant-numeric:tabular-nums}
+  .pop-avail-badge{font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:99px;
+    background:rgba(42,157,143,.1);color:var(--t1);border:1px solid rgba(42,157,143,.2)}
   .pop-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px;font-size:12px;margin-bottom:9px}
-  .pop-grid .k{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:0}
+  .pop-grid .k{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:0}
   .pop-grid .v{font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink)}
   .pop-bar,.bar{height:5px;background:rgba(27,42,36,.12);border-radius:99px;overflow:hidden;margin-bottom:3px}
   .pop-bar i,.bar i{display:block;height:100%;border-radius:99px}
@@ -311,7 +341,7 @@
 
   /* radius research */
   .rchart{display:block;margin:4px 0 2px}
-  .rchart text{font:9.5px -apple-system,sans-serif;fill:var(--ink-soft)}
+  .rchart text{font:9.5px "Inter",-apple-system,sans-serif;fill:var(--ink-soft)}
   .rchart .axl{font-size:9px}
   .rhint{font-size:10.5px;color:var(--ink-soft);margin-top:4px;line-height:1.45}
 
@@ -525,8 +555,8 @@
   .bn:nth-child(2){border-top-color:var(--t2)}
   .bn:nth-child(3){border-top-color:var(--t3)}
   .bn .v{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:2px}
-  .bn .k{font-size:8.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
-  .sc-sec{font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-soft);
+  .bn .k{font-size:9.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-soft);margin-top:2px}
+  .sc-sec{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-soft);
     margin:16px 0 8px;display:flex;align-items:center;gap:8px}
   .sc-sec::after{content:'';flex:1;height:1px;background:rgba(27,42,36,.1)}
   .hrow{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px}
@@ -623,7 +653,7 @@
   .shr-label{display:none}
 
   /* brochure preview (popup) */
-  .pop-brochure{position:relative;height:110px;background:#eceae4;border-bottom:1px solid rgba(27,42,36,.09);overflow:hidden;flex-shrink:0}
+  .pop-brochure{position:relative;height:140px;background:#eceae4;border-bottom:1px solid rgba(27,42,36,.09);overflow:hidden;flex-shrink:0}
   .pop-brochure img{position:absolute;top:0;left:0;width:100%;height:100%;display:none;object-fit:cover}
   .pop-brochure.loaded img{display:block}
   .pop-brochure-spin{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;font-size:11px;color:var(--ink-soft);opacity:.7}
@@ -642,7 +672,6 @@
   }
   .pop-brochure-open:hover{background:rgba(0,0,0,.72)}
   .pop-brochure.error .pop-brochure-open{color:var(--ink-soft);background:none;border:1px solid rgba(27,42,36,.15)}
-  .pop-brochure-open:hover{opacity:1}
   .pop-brochure-pg{font-size:10px;color:rgba(255,255,255,.6);font-weight:500}
   .pop-brochure.error .pop-brochure-pg{display:none}
   .pop-brochure.error{height:auto}
@@ -731,10 +760,11 @@
   .auth-bar-signout{background:none;border:none;cursor:pointer;color:var(--ink-soft);
     opacity:.45;padding:3px;border-radius:4px;transition:opacity .14s;display:flex;line-height:0}
   .auth-bar-signout:hover{opacity:.85}
-  .auth-bar-signin{font-size:11px;font-weight:600;color:var(--ink);background:#143C2B;
-    border:none;font:600 11px/1 inherit;cursor:pointer;padding:5px 12px;border-radius:7px;
-    color:#F7F5F0;transition:background .14s;-webkit-tap-highlight-color:transparent}
-  .auth-bar-signin:hover{background:#1a5038}
+  .auth-bar-signin{font-size:11px;font-weight:600;color:#fff;
+    background:linear-gradient(135deg,#2A9D8F 0%,#1e7d72 100%);
+    border:none;font:600 11px/1 inherit;cursor:pointer;padding:5px 14px;border-radius:7px;
+    transition:filter .14s;-webkit-tap-highlight-color:transparent;white-space:nowrap}
+  .auth-bar-signin:hover{filter:brightness(1.1)}
 
   /* ── auth modal ────────────────────────────────────────────────── */
   .auth-overlay{position:fixed;inset:0;z-index:4000;background:rgba(27,42,36,.55);
@@ -879,12 +909,12 @@
   .wl-atog[data-on="true"] .wl-atog-dot{background:var(--t1)}
 
   /* compact popup → view details button */
-  .pop-view-btn{display:block;width:100%;padding:11px 16px 12px;background:#143C2B;color:#F7F5F0;
-    font:600 12.5px/1 inherit;letter-spacing:.04em;text-align:center;
-    border:none;border-top:1px solid rgba(201,162,39,.2);
-    cursor:pointer;transition:background .15s;-webkit-tap-highlight-color:transparent}
-  .pop-view-btn:hover{background:#1a5038}
-  .pop-view-btn:active{background:#0e2a1a}
+  .pop-view-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    padding:13px 16px;background:linear-gradient(135deg,#2A9D8F 0%,#1e7d72 100%);color:#fff;
+    font:700 12.5px/1 inherit;letter-spacing:.04em;text-align:center;
+    border:none;cursor:pointer;transition:filter .15s;-webkit-tap-highlight-color:transparent}
+  .pop-view-btn:hover{filter:brightness(1.1)}
+  .pop-view-btn:active{filter:brightness(.92)}
 
   /* project detail panel (inside sidebar) */
   .proj-detail{display:none}
@@ -904,7 +934,9 @@
   .proj-det-img.loaded .proj-det-img-spin,.proj-det-img.error .proj-det-img-spin{display:none}
   .proj-det-img-spin svg{animation:spin .9s linear infinite}
   .proj-det-img-bar{position:absolute;bottom:8px;right:8px}
-  .proj-det-img.error .proj-det-img-bar{display:none}
+  .proj-det-img.error{height:auto;background:rgba(27,42,36,.03);border:1px dashed rgba(27,42,36,.12)}
+  .proj-det-img.error .proj-det-img-bar{position:static;padding:10px 12px;display:flex}
+  .proj-det-img.error .proj-det-img-bar .pop-brochure-open{background:none;color:var(--ink-soft);border-color:rgba(27,42,36,.2);border-radius:8px;font-weight:600}
   .proj-det-hdr{margin-bottom:10px;border-radius:10px;overflow:hidden}
 </style>
 </head>
@@ -1040,7 +1072,7 @@
       <div class="sidebar-sec is-first">Filters</div>
 
       <section class="acc open" data-acc>
-        <button class="acc-head" aria-expanded="true"><span>Type</span><span class="acc-head-r"><span class="acc-val" id="typeVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+        <button class="acc-head" aria-expanded="true"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Type</span><span class="acc-head-r"><span class="acc-val" id="typeVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="chips" id="typeChips" role="group" aria-label="Property type filter">
             <button class="chip on" data-type="all">All</button>
@@ -1050,7 +1082,7 @@
         </div></div>
       </section>
       <section class="acc open" data-acc>
-        <button class="acc-head" aria-expanded="true"><span>Status</span><span class="acc-head-r"><span class="acc-val" id="tenVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+        <button class="acc-head" aria-expanded="true"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Status</span><span class="acc-head-r"><span class="acc-val" id="tenVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="chips" id="tenChips" role="group" aria-label="Status filter">
             <button class="chip on" data-ten="all">All</button>
@@ -1061,7 +1093,7 @@
       </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Price range</span><span class="acc-head-r"><span class="acc-val" id="priceVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Price range</span><span class="acc-head-r"><span class="acc-val" id="priceVal">All</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="tier-rows" id="sidebarTiers" role="group" aria-label="Price range filter">
             <button class="tier-row-btn" data-t="0"><span class="tr-dot" style="background:var(--t1)"></span>Under RM 300k</button>
@@ -1074,7 +1106,7 @@
       </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Bedrooms</span><span class="acc-head-r"><span class="acc-val" id="bedVal">Any</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>Bedrooms</span><span class="acc-head-r"><span class="acc-val" id="bedVal">Any</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="chips" id="bedChips" role="group" aria-label="Bedroom filter">
             <button class="chip on" data-b="all">Any</button>
@@ -1086,7 +1118,7 @@
       </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Launch year</span><span class="acc-head-r"><span class="acc-val" id="yearVal">Any</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Launch year</span><span class="acc-head-r"><span class="acc-val" id="yearVal">Any</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></span></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="chips" id="yearChips" role="group" aria-label="Launch year filter" style="flex-wrap:wrap">
             <button class="chip on" data-y="all">Any</button>
@@ -1105,7 +1137,7 @@
       <div class="sidebar-sec">Map layers</div>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Base map</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>Base map</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="radios" id="baseChips" role="radiogroup" aria-label="Base map style">
             <label class="radio"><input type="radio" name="base" value="carto" checked><span>Map</span></label>
@@ -1117,7 +1149,7 @@
       </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Rail network</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="12" y1="3" x2="12" y2="11"/><circle cx="8.5" cy="16.5" r="1.5"/><circle cx="15.5" cy="16.5" r="1.5"/><line x1="6" y1="21" x2="9" y2="19"/><line x1="18" y1="21" x2="15" y2="19"/></svg>Rail network</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="chips" id="railChips" role="group" aria-label="Rail line toggles"></div>
           <div class="lhint" style="margin-top:7px">Toggle each layer independently.</div>
@@ -1125,7 +1157,7 @@
       </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Nearby amenities</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Nearby amenities</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="toggles">
             <label class="toggle am-school"><span>🎓 Schools</span><input type="checkbox" id="togSchools"><span class="tk"></span></label>
@@ -1141,7 +1173,7 @@
       <div class="sidebar-sec">Tools</div>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Demographics</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Demographics</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="chips" role="group" aria-label="Demographics layer">
             <button class="chip" id="demToggle" disabled>Loading data…</button>
@@ -1159,7 +1191,7 @@
       </section>
 
       <section class="acc" data-acc>
-        <button class="acc-head" aria-expanded="false"><span>Area project scan</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><circle cx="12" cy="12" r="3"/></svg>Area project scan</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="acc-body"><div class="acc-inner">
           <div class="rt-row"><span>Radius</span>
             <input type="range" id="rtRadius" min="1" max="20" step="0.5" value="5" aria-label="Scan radius in km">
@@ -1170,7 +1202,7 @@
       </section>
 
       <section class="acc" data-acc id="trendingAcc" style="display:none">
-        <button class="acc-head" aria-expanded="false"><span>Trending this week</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
+        <button class="acc-head" aria-expanded="false"><span class="acc-head-l"><svg class="acc-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Trending this week</span><svg class="acc-chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button>
         <div class="acc-body"><div class="acc-inner" id="trendingBody">
           <div class="lhint">Loading…</div>
         </div></div>
@@ -1532,7 +1564,10 @@ function openProjectDetail() {
       ${momentumBadge}
     </div>
     <div class="pop-body">
-      <div class="pop-price">${pmin ? `${fmtRM(pmin)}${pmax > pmin ? ` – ${fmtRM(pmax)}` : ''} <span>price range</span>` : '<span style="font-size:13px;font-weight:400">Price not yet available</span>'}</div>
+      ${pmin ? `<div class="pop-price-lbl">Starting price</div>` : ''}
+      <div class="pop-price">${pmin
+        ? `${fmtRM(pmin)}${pmax > pmin ? `<span class="pop-price-to"> – ${fmtRM(pmax)}</span>` : ''}`
+        : '<span style="font-size:13px;font-weight:400;color:var(--ink-soft)">Price not yet available</span>'}</div>
       ${gridCells ? `<div class="pop-grid">${gridCells}</div>` : ''}
       ${allUnitsHTML}
       ${pct !== null ? (isPro
@@ -1665,9 +1700,42 @@ function unitBreakdownHTML(compact){
 
 function popupHTML(d){
   const [name,lat,lon,ten,landed,dev,pmin,pmax,units,sold,fmin,fmax,date,dateType,pid,brochureUrl,state] = d;
+  const beds = d[19] || ''; const unitType = (d[20] || '').split('/')[0].trim();
   const statusLabel = ten==='active' ? 'Active' : ten==='done' ? 'Completed' : null;
   _currentDetailProject = d;
   popupShareData = { name, dev, url: location.origin + '?lat=' + lat.toFixed(5) + '&lon=' + lon.toFixed(5) };
+
+  // Floor area (m² → sqft) — no locale commas in stat cell to keep it compact
+  const sqftMin = fmin ? Math.round(+fmin * 10.764) : null;
+  const sqftMax = fmax ? Math.round(+fmax * 10.764) : null;
+  const sqftStr = (sqftMin && sqftMax && sqftMax > sqftMin)
+    ? `${sqftMin}–${sqftMax} sf`
+    : sqftMin ? `${sqftMin} sf` : null;
+
+  // Quick stats row (up to 3)
+  const stats = [];
+  if (units) stats.push({ v: Number(units).toLocaleString(), k: 'Units' });
+  if (sqftStr) stats.push({ v: sqftStr, k: 'Floor area' });
+  else if (unitType) stats.push({ v: unitType, k: 'Type' });
+  if (beds) stats.push({ v: beds + ' BR', k: 'Bedrooms' });
+  const statsRow = stats.length
+    ? `<div class="pop-quick-stats">${stats.slice(0,3).map(s=>`<div class="pop-stat"><div class="pop-stat-v">${esc(s.v)}</div><div class="pop-stat-k">${s.k}</div></div>`).join('')}</div>`
+    : '';
+
+  // Sold availability bar
+  const unitsNum = units ? +units : 0;
+  const soldNum  = sold  ? +sold  : 0;
+  const soldPct  = (unitsNum > 0 && soldNum > 0) ? Math.min(100, Math.round(soldNum / unitsNum * 100)) : null;
+  const availNum = (unitsNum > 0 && soldNum > 0) ? Math.max(0, unitsNum - soldNum) : null;
+  const soldFillCls = soldPct >= 90 ? ' critical' : soldPct >= 70 ? ' high' : '';
+  const soldBar = soldPct !== null ? `<div class="pop-sold">
+    <div class="pop-sold-track"><div class="pop-sold-fill${soldFillCls}" style="width:${soldPct}%"></div></div>
+    <div class="pop-sold-lbl">
+      <span><strong>${soldPct}%</strong> sold</span>
+      ${(availNum !== null && isPro) ? `<span class="pop-avail-badge">${availNum.toLocaleString()} avail.</span>` : ''}
+    </div>
+  </div>` : '';
+
   return `<div class="pop">
     <div class="pop-hdr">
       <div class="pop-tags">
@@ -1685,10 +1753,18 @@ function popupHTML(d){
         Loading image…
       </div>
     </div>` : ''}
-    <div class="pop-body" style="padding-bottom:8px">
-      <div class="pop-price">${pmin ? `${fmtRM(pmin)}${pmax > pmin ? ` – ${fmtRM(pmax)}` : ''} <span>price range</span>` : '<span style="font-size:13px;font-weight:400">Price not yet available</span>'}</div>
+    <div class="pop-body">
+      ${pmin ? `<div class="pop-price-lbl">Starting price</div>` : ''}
+      <div class="pop-price">${pmin
+        ? `${fmtRM(pmin)}${pmax > pmin ? `<span class="pop-price-to"> – ${fmtRM(pmax)}</span>` : ''}`
+        : '<span style="font-size:13px;font-weight:400;color:var(--ink-soft)">Price TBA</span>'}</div>
+      ${statsRow}
     </div>
-    <button class="pop-view-btn" onclick="openProjectDetail()">View property details →</button>
+    ${soldBar}
+    <button class="pop-view-btn" onclick="openProjectDetail()">
+      View property details
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
   </div>`;
 }
 
